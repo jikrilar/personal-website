@@ -1,7 +1,9 @@
 ---
+import Intro from "@/components/layout/Intro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 ---
 
 <BaseLayout>
+  <Intro client:load />
   <main id="main-content" class="min-h-dvh bg-background text-foreground"></main>
 </BaseLayout>
