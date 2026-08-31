@@ -1,0 +1,33 @@
+---
+import { siteMetadata } from "@/data/site";
+import "@/styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  canonical?: URL | string;
+}
+
+const {
+  title = siteMetadata.title,
+  description = siteMetadata.description,
+  canonical,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang={siteMetadata.language}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <slot />
+  </body>
+</html>
