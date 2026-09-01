@@ -1,0 +1,28 @@
+---
+import heroVideoUrl from "../../../assets/background-video-text.webm?url";
+
+import { VideoText } from "@/components/magic-ui/VideoText";
+import { siteMetadata } from "@/data/site";
+---
+
+<section
+  class="flex min-h-[calc(100dvh-6rem)] items-center overflow-hidden md:min-h-[calc(100dvh-4.5rem)]"
+  aria-labelledby="hero-title"
+>
+  <div class="page-container flex flex-col items-center pb-8 text-center md:pb-12">
+    <VideoText
+      as="h1"
+      id="hero-title"
+      src={heroVideoUrl}
+      mobileLines={["Muhamad", "Jikril", "Aryanda"]}
+      tabletLines={["Muhamad Jikril", "Aryanda"]}
+      desktopLines={[siteMetadata.name]}
+    >
+      {siteMetadata.name}
+    </VideoText>
+
+    <p class="-mt-8 text-sm font-medium tracking-[0.01em] text-muted-foreground md:-mt-10 md:text-base">
+      {siteMetadata.role}
+    </p>
+  </div>
+</section>
