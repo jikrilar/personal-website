@@ -1,0 +1,56 @@
+---
+import { navigationItems } from "@/data/navigation";
+import { siteMetadata } from "@/data/site";
+---
+
+<header class="sticky top-0 z-[60] bg-background/90 backdrop-blur-sm">
+  <nav
+    class="page-container flex min-h-24 flex-col justify-center py-1 md:min-h-18 md:flex-row md:items-center md:justify-between md:py-0"
+    aria-label="Primary navigation"
+  >
+    <a
+      class="inline-flex min-h-11 w-fit items-center text-sm font-medium tracking-[-0.02em] text-foreground transition-opacity duration-(--duration-fast) ease-(--ease-standard) hover:opacity-60 md:min-h-0"
+      href="#main-content"
+      aria-label={`${siteMetadata.name}, back to top`}
+    >
+      {siteMetadata.name}
+    </a>
+
+    <ul class="grid w-full grid-cols-5 md:w-auto md:flex md:items-center md:gap-5 lg:gap-7">
+      {
+        navigationItems.map(({ href, label }) => (
+          <li class="min-w-0">
+            <a
+              class="group inline-flex min-h-11 w-full items-center justify-center px-0.5 text-[clamp(0.65rem,3.1vw,0.75rem)] font-medium text-muted-foreground transition-[color,transform] duration-(--duration-fast) ease-(--ease-standard) hover:text-foreground active:translate-y-px md:min-h-11 md:w-auto md:px-1 md:text-sm"
+              href={href}
+            >
+              <span class="relative whitespace-nowrap after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-right after:scale-x-0 after:bg-current after:transition-transform after:duration-(--duration-normal) after:ease-(--ease-standard) group-hover:after:origin-left group-hover:after:scale-x-100 group-focus-visible:after:origin-left group-focus-visible:after:scale-x-100">
+                {label}
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>
+
+<style>
+  :global(#about),
+  :global(#skills),
+  :global(#projects),
+  :global(#experience),
+  :global(#contact) {
+    scroll-margin-top: 7rem;
+  }
+
+  @media (min-width: 48rem) {
+    :global(#about),
+    :global(#skills),
+    :global(#projects),
+    :global(#experience),
+    :global(#contact) {
+      scroll-margin-top: 5.5rem;
+    }
+  }
+</style>
