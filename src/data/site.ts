@@ -1,3 +1,5 @@
+import { profile } from "@/data/profile";
+
 export interface SiteMetadata {
   name: string;
   role: string;
@@ -7,10 +9,9 @@ export interface SiteMetadata {
 }
 
 export const siteMetadata: SiteMetadata = {
-  name: "Muhamad Jikril Aryanda",
-  role: "Full Stack Developer",
-  title: "Muhamad Jikril Aryanda | Full Stack Developer",
-  description:
-    "Portfolio of Muhamad Jikril Aryanda, a Full Stack Developer experienced with Laravel, PHP, relational databases, RESTful APIs, and modern web development.",
+  name: profile.name,
+  role: profile.title,
+  title: `${profile.name} | ${profile.title}`,
+  description: profile.summary,
   language: "en",
 };
