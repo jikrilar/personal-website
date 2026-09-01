@@ -1,9 +1,24 @@
 .typing-animation {
-  display: block;
+  display: grid;
+}
+
+.typing-animation__measure,
+.typing-animation__text {
+  grid-area: 1 / 1;
+  align-self: start;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.typing-animation__measure {
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
 }
 
 .typing-animation__text {
-  display: inline;
+  display: block;
   color: inherit;
   opacity: 1;
   visibility: visible;

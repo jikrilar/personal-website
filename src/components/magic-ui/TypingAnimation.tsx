@@ -114,6 +114,9 @@ export function TypingAnimation({
       data-phase={phase}
     >
       <span className="sr-only">{text}</span>
+      <span className="typing-animation__measure" aria-hidden="true">
+        {text}
+      </span>
       <span className="typing-animation__text" aria-hidden="true">
         {displayedText}
         {showCursor && (
