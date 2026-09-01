@@ -1,0 +1,85 @@
+---
+interface Props {
+  size?: number;
+  duration?: number;
+  delay?: number;
+  borderWidth?: number;
+  colorFrom?: string;
+  colorTo?: string;
+}
+
+const {
+  size = 72,
+  duration = 10,
+  delay = 0,
+  borderWidth = 1,
+  colorFrom = "var(--foreground)",
+  colorTo = "var(--border-strong)",
+} = Astro.props;
+
+const beamStyle = [
+  `--beam-size: ${size}px`,
+  `--beam-duration: ${duration}s`,
+  `--beam-delay: ${delay}s`,
+  `--beam-border-width: ${borderWidth}px`,
+  `--beam-color-from: ${colorFrom}`,
+  `--beam-color-to: ${colorTo}`,
+].join(";");
+
+// Magic UI Border Beam adapted to CSS motion-path animation for zero hydration.
+---
+
+<div class="border-beam" style={beamStyle} aria-hidden="true">
+  <span></span>
+</div>
+
+<style>
+  .border-beam {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border: var(--beam-border-width) solid transparent;
+    border-radius: inherit;
+    mask:
+      linear-gradient(transparent, transparent),
+      linear-gradient(#000, #000);
+    mask-clip: padding-box, border-box;
+    mask-composite: intersect;
+    -webkit-mask:
+      linear-gradient(transparent, transparent) padding-box,
+      linear-gradient(#000, #000) border-box;
+    -webkit-mask-composite: xor;
+  }
+
+  .border-beam span {
+    position: absolute;
+    width: var(--beam-size);
+    aspect-ratio: 1;
+    offset-path: rect(0 auto auto 0 round var(--beam-size));
+    background: linear-gradient(
+      to left,
+      var(--beam-color-from),
+      var(--beam-color-to),
+      transparent
+    );
+    animation: border-beam-travel var(--beam-duration) linear infinite;
+    animation-delay: calc(var(--beam-delay) * -1);
+  }
+
+  @keyframes border-beam-travel {
+    from {
+      offset-distance: 0%;
+    }
+
+    to {
+      offset-distance: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .border-beam {
+      display: none;
+    }
+  }
+</style>

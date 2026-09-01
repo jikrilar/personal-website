@@ -1,0 +1,35 @@
+---
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+
+// Static Astro port of Magic UI's Bento Grid layout primitive.
+---
+
+<div class:list={["bento-grid", className]} role="list">
+  <slot />
+</div>
+
+<style>
+  .bento-grid {
+    display: grid;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  @media (min-width: 48rem) {
+    .bento-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .bento-grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      grid-auto-flow: dense;
+    }
+  }
+</style>
