@@ -1,0 +1,18 @@
+---
+import ScrollTimeline from "@/components/custom/ScrollTimeline.astro";
+import { experiences } from "@/data/experience";
+---
+
+<section
+  id="experience"
+  class="section-spacing scroll-mt-28 overflow-clip md:scroll-mt-22"
+  aria-labelledby="experience-title"
+>
+  <div class="page-container">
+    <header class="mb-14 md:mb-20">
+      <h2 id="experience-title">Experience</h2>
+    </header>
+
+    <ScrollTimeline entries={experiences} />
+  </div>
+</section>

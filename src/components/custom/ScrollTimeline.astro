@@ -1,0 +1,376 @@
+---
+import type { Experience } from "@/data/experience";
+
+interface Props {
+  entries: Experience[];
+}
+
+const { entries } = Astro.props;
+---
+
+<scroll-timeline class="scroll-timeline">
+  <span class="scroll-timeline__rail" aria-hidden="true">
+    <span class="scroll-timeline__progress"></span>
+  </span>
+
+  <ol class="scroll-timeline__list" role="list">
+    {
+      entries.map((entry) => (
+        <li class="scroll-timeline__item" data-timeline-item>
+          <p class="scroll-timeline__period">{entry.periodLabel}</p>
+
+          <span class="scroll-timeline__marker" aria-hidden="true"></span>
+
+          <article
+            class="scroll-timeline__content"
+            aria-labelledby={`experience-${entry.id}`}
+          >
+            <header class="scroll-timeline__heading">
+              <h3 id={`experience-${entry.id}`}>{entry.organization}</h3>
+              <p class="scroll-timeline__role">{entry.role}</p>
+              <p class="scroll-timeline__location">{entry.location}</p>
+            </header>
+
+            {entry.highlights.length > 0 && (
+              <ul class="scroll-timeline__highlights">
+                {entry.highlights.map((highlight) => <li>{highlight}</li>)}
+              </ul>
+            )}
+          </article>
+        </li>
+      ))
+    }
+  </ol>
+</scroll-timeline>
+
+<script>
+  class ScrollTimelineElement extends HTMLElement {
+    private sectionObserver?: IntersectionObserver;
+    private revealObserver?: IntersectionObserver;
+    private animationFrame?: number;
+    private motionQuery?: MediaQueryList;
+    private progressRail: HTMLElement | null = null;
+    private items: HTMLElement[] = [];
+
+    connectedCallback() {
+      this.progressRail = this.querySelector<HTMLElement>(
+        ".scroll-timeline__progress",
+      );
+      this.items = Array.from(
+        this.querySelectorAll<HTMLElement>("[data-timeline-item]"),
+      );
+      this.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      this.motionQuery.addEventListener("change", this.handleMotionChange);
+      this.applyMotionPreference();
+    }
+
+    disconnectedCallback() {
+      this.cleanupEnhancement();
+      this.motionQuery?.removeEventListener("change", this.handleMotionChange);
+    }
+
+    private handleMotionChange = () => {
+      this.applyMotionPreference();
+    };
+
+    private applyMotionPreference() {
+      this.cleanupEnhancement();
+
+      if (
+        this.motionQuery?.matches ||
+        !("IntersectionObserver" in window) ||
+        !this.progressRail
+      ) {
+        this.setStaticState();
+        return;
+      }
+
+      this.classList.remove("is-static");
+      this.classList.add("is-enhanced");
+      this.progressRail.style.transform = "scaleY(0)";
+      this.items.forEach((item) => item.classList.remove("is-active"));
+
+      this.revealObserver = new IntersectionObserver(
+        (observedEntries) => {
+          observedEntries.forEach((observedEntry) => {
+            if (observedEntry.isIntersecting) {
+              observedEntry.target.classList.add("is-revealed");
+              this.revealObserver?.unobserve(observedEntry.target);
+            }
+          });
+        },
+        { rootMargin: "0px 0px -18% 0px", threshold: 0.08 },
+      );
+
+      this.items.forEach((item) => this.revealObserver?.observe(item));
+
+      this.sectionObserver = new IntersectionObserver(
+        ([entry]) => {
+          if (entry?.isIntersecting) {
+            this.startProgressLoop();
+          } else {
+            this.stopProgressLoop();
+          }
+        },
+        { rootMargin: "20% 0px" },
+      );
+      this.sectionObserver.observe(this);
+    }
+
+    private setStaticState() {
+      this.classList.remove("is-enhanced", "is-running");
+      this.classList.add("is-static");
+      this.progressRail?.style.setProperty("transform", "scaleY(1)");
+      this.items.forEach((item) => {
+        item.classList.add("is-revealed", "is-active");
+      });
+    }
+
+    private startProgressLoop() {
+      if (this.animationFrame !== undefined) return;
+
+      this.classList.add("is-running");
+      this.updateProgress();
+    }
+
+    private stopProgressLoop() {
+      if (this.animationFrame !== undefined) {
+        window.cancelAnimationFrame(this.animationFrame);
+        this.animationFrame = undefined;
+      }
+
+      this.classList.remove("is-running");
+    }
+
+    private updateProgress = () => {
+      const timelineRect = this.getBoundingClientRect();
+      const focusLine = window.innerHeight * 0.5;
+      const progress = Math.min(
+        Math.max((focusLine - timelineRect.top) / timelineRect.height, 0),
+        1,
+      );
+
+      if (this.progressRail) {
+        this.progressRail.style.transform = `scaleY(${progress})`;
+      }
+
+      this.items.forEach((item) => {
+        const itemRect = item.getBoundingClientRect();
+        const isActive =
+          itemRect.top <= focusLine && itemRect.bottom >= focusLine;
+        item.classList.toggle("is-active", isActive);
+      });
+
+      this.animationFrame = window.requestAnimationFrame(this.updateProgress);
+    };
+
+    private cleanupEnhancement() {
+      this.sectionObserver?.disconnect();
+      this.revealObserver?.disconnect();
+      this.sectionObserver = undefined;
+      this.revealObserver = undefined;
+      this.stopProgressLoop();
+    }
+  }
+
+  if (!customElements.get("scroll-timeline")) {
+    customElements.define("scroll-timeline", ScrollTimelineElement);
+  }
+</script>
+
+<style>
+  .scroll-timeline {
+    --timeline-marker-column: 1.75rem;
+
+    position: relative;
+    display: block;
+  }
+
+  .scroll-timeline__rail {
+    position: absolute;
+    top: 0.5rem;
+    bottom: 0;
+    left: calc(var(--timeline-marker-column) / 2);
+    width: 1px;
+    overflow: hidden;
+    background: var(--border);
+  }
+
+  .scroll-timeline__progress {
+    position: absolute;
+    inset: 0;
+    background: var(--foreground);
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+
+  .scroll-timeline.is-running .scroll-timeline__progress {
+    will-change: transform;
+  }
+
+  .scroll-timeline__list {
+    display: grid;
+    gap: 5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .scroll-timeline__item {
+    display: grid;
+    grid-template-columns: var(--timeline-marker-column) minmax(0, 1fr);
+    min-width: 0;
+  }
+
+  .scroll-timeline__period {
+    grid-column: 2;
+    margin-bottom: 1rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .scroll-timeline__marker {
+    position: relative;
+    z-index: 1;
+    grid-row: 1 / span 2;
+    grid-column: 1;
+    justify-self: center;
+    width: 0.75rem;
+    height: 0.75rem;
+    margin-top: 0.35rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    background: var(--background);
+    transition:
+      border-color var(--duration-normal) var(--ease-standard),
+      background-color var(--duration-normal) var(--ease-standard);
+  }
+
+  .scroll-timeline__item.is-active .scroll-timeline__marker,
+  .scroll-timeline.is-static .scroll-timeline__marker {
+    border-color: var(--foreground);
+    background: var(--foreground);
+  }
+
+  .scroll-timeline__content {
+    grid-column: 2;
+    min-width: 0;
+    max-width: 58rem;
+  }
+
+  .scroll-timeline__heading {
+    margin-bottom: 2.25rem;
+  }
+
+  .scroll-timeline__heading h3 {
+    overflow-wrap: anywhere;
+  }
+
+  .scroll-timeline__role {
+    margin-top: 0.75rem;
+    color: var(--foreground);
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .scroll-timeline__location {
+    margin-top: 0.35rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .scroll-timeline__highlights {
+    display: grid;
+    gap: 1.15rem;
+    margin: 0;
+    padding-left: 1.2rem;
+    color: var(--muted-foreground);
+    font-size: 0.9375rem;
+    line-height: 1.65;
+  }
+
+  .scroll-timeline__highlights li {
+    padding-left: 0.25rem;
+  }
+
+  .scroll-timeline__highlights li::marker {
+    color: var(--border-strong);
+    font-size: 0.7em;
+  }
+
+  .scroll-timeline.is-enhanced .scroll-timeline__item {
+    opacity: 0;
+    transform: translateY(0.75rem);
+    transition:
+      opacity var(--duration-reveal) var(--ease-standard),
+      transform var(--duration-reveal) var(--ease-standard);
+  }
+
+  .scroll-timeline.is-enhanced .scroll-timeline__item.is-revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (min-width: 48rem) {
+    .scroll-timeline {
+      --timeline-period-column: clamp(10rem, 20vw, 18rem);
+      --timeline-marker-column: 3rem;
+    }
+
+    .scroll-timeline__rail {
+      left: calc(
+        var(--timeline-period-column) + (var(--timeline-marker-column) / 2)
+      );
+    }
+
+    .scroll-timeline__item {
+      grid-template-columns:
+        var(--timeline-period-column) var(--timeline-marker-column)
+        minmax(0, 1fr);
+    }
+
+    .scroll-timeline__period {
+      grid-row: 1;
+      grid-column: 1;
+      margin: 0;
+      padding-right: 2rem;
+    }
+
+    .scroll-timeline__marker {
+      grid-row: 1;
+      grid-column: 2;
+    }
+
+    .scroll-timeline__content {
+      grid-row: 1;
+      grid-column: 3;
+    }
+  }
+
+  @media (min-width: 80rem) {
+    .scroll-timeline__highlights {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.25rem 3rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-timeline__progress,
+    .scroll-timeline__marker,
+    .scroll-timeline__item {
+      transition-duration: 0.01ms !important;
+    }
+
+    .scroll-timeline__item {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+</style>
