@@ -1,0 +1,69 @@
+.pixel-image {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  aspect-ratio: 695 / 1080;
+  background: var(--surface-muted);
+}
+
+.pixel-image__fallback,
+.pixel-image__piece-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pixel-image__fallback {
+  display: block;
+  transition: opacity 500ms var(--ease-standard);
+}
+
+.pixel-image__pieces {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pixel-image__piece {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translate3d(0, 0.5rem, 0);
+  transition:
+    opacity 1000ms var(--ease-standard),
+    transform 1000ms var(--ease-standard);
+}
+
+.pixel-image:not([data-phase="idle"]) .pixel-image__fallback {
+  opacity: 0.35;
+}
+
+.pixel-image[data-phase="revealing"] .pixel-image__piece,
+.pixel-image[data-phase="revealed"] .pixel-image__piece {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition-delay: var(--pixel-reveal-delay);
+}
+
+.pixel-image[data-phase="hiding"] .pixel-image__piece {
+  opacity: 0;
+  transform: translate3d(0, 0.5rem, 0);
+  transition-delay: var(--pixel-hide-delay);
+}
+
+.pixel-image[data-phase="idle"] .pixel-image__piece,
+.pixel-image[data-phase="pixelated"] .pixel-image__piece {
+  opacity: 0;
+  transform: translate3d(0, 0.5rem, 0);
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pixel-image__pieces {
+    display: none;
+  }
+
+  .pixel-image:not([data-phase="idle"]) .pixel-image__fallback {
+    opacity: 1;
+  }
+}

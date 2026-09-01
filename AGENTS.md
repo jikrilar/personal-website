@@ -1440,3 +1440,25 @@ Structured website data should live under:
 `src/data/`
 
 and must remain consistent with `content/CV.md`.
+
+## Preview Server Rules
+
+Do not run `npm run preview` or `astro preview` as part of normal
+post-task validation.
+
+Normal validation should use:
+
+- TypeScript/type check
+- `npm run build`
+- lint/tests if configured
+
+Only start the Astro preview server when browser-based or visual
+verification is explicitly required.
+
+If a preview server is started:
+- do not wait indefinitely for the process to exit;
+- treat a successful "server running" message as startup success;
+- perform the required verification;
+- stop the preview server after verification.
+
+Do not leave preview/dev servers running after the task is complete.

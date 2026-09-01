@@ -1,0 +1,30 @@
+---
+import aboutPictureUrl from "../../../assets/about-picture.webp?url";
+
+import { AboutContent } from "@/components/sections/AboutContent";
+import { profile } from "@/data/profile";
+---
+
+<section
+  id="about"
+  class="section-spacing scroll-mt-28 overflow-hidden md:scroll-mt-22"
+  aria-labelledby="about-title"
+>
+  <div class="page-container">
+    <h2
+      id="about-title"
+      class="mb-12 text-xs font-medium tracking-[0.12em] text-muted uppercase md:mb-16"
+    >
+      01 / About
+    </h2>
+
+    <AboutContent
+      client:visible
+      summary={profile.summary}
+      imageSrc={aboutPictureUrl}
+      imageAlt={`Portrait of ${profile.name}`}
+      imageWidth={695}
+      imageHeight={1080}
+    />
+  </div>
+</section>
