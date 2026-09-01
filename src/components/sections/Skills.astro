@@ -1,0 +1,18 @@
+---
+import InteractiveTechStackGrid from "@/components/custom/InteractiveTechStackGrid.astro";
+import { skillGroups } from "@/data/skills";
+---
+
+<section
+  id="skills"
+  class="section-spacing scroll-mt-28 overflow-clip md:scroll-mt-22"
+  aria-labelledby="skills-title"
+>
+  <div class="page-container">
+    <header class="mb-14 md:mb-20">
+      <h2 id="skills-title">Skills</h2>
+    </header>
+
+    <InteractiveTechStackGrid groups={skillGroups} />
+  </div>
+</section>

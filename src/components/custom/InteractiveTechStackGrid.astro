@@ -1,0 +1,189 @@
+---
+import type { SkillGroup } from "@/data/skills";
+
+interface Props {
+  groups: SkillGroup[];
+}
+
+const { groups } = Astro.props;
+
+const formatGroupNumber = (index: number) => String(index + 1).padStart(2, "0");
+---
+
+<div class="tech-grid">
+  {
+    groups.map((group, groupIndex) => (
+      <section
+        class="tech-grid__group"
+        aria-labelledby={`skill-group-${group.id}`}
+      >
+        <header class="tech-grid__header">
+          <span class="tech-grid__number" aria-hidden="true">
+            {formatGroupNumber(groupIndex)}
+          </span>
+          <h3 id={`skill-group-${group.id}`} class="tech-grid__label">
+            {group.label}
+          </h3>
+        </header>
+
+        <ul class="tech-grid__items" role="list">
+          {group.skills.map((skill) => (
+            <li class="tech-grid__item" tabindex="0">
+              <span class="tech-grid__name">{skill}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+</div>
+
+<style>
+  .tech-grid {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tech-grid__group {
+    display: grid;
+    gap: 1.75rem;
+    padding-block: 2rem 2.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .tech-grid__header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+  }
+
+  .tech-grid__number,
+  .tech-grid__label {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .tech-grid__number {
+    min-width: 1.5rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tech-grid__label {
+    color: var(--muted-foreground);
+    font-weight: 500;
+  }
+
+  .tech-grid__items {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.25rem 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tech-grid__item {
+    display: flex;
+    min-width: 0;
+    min-height: 3rem;
+    align-items: center;
+    color: var(--foreground);
+    outline-offset: 0.25rem;
+    transition:
+      color var(--duration-fast) var(--ease-standard),
+      opacity var(--duration-normal) var(--ease-standard),
+      transform var(--duration-normal) var(--ease-standard);
+  }
+
+  .tech-grid__name {
+    position: relative;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    font-size: clamp(1rem, 0.94rem + 0.3vw, 1.125rem);
+    font-weight: 450;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
+  }
+
+  .tech-grid__name::after {
+    position: absolute;
+    right: 0;
+    bottom: -0.2rem;
+    left: 0;
+    height: 1px;
+    background: currentColor;
+    content: "";
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform var(--duration-normal) var(--ease-standard);
+  }
+
+  .tech-grid__item:is(:hover, :focus-visible) {
+    transform: translateX(0.25rem);
+  }
+
+  .tech-grid__item:is(:hover, :focus-visible) .tech-grid__name {
+    font-weight: 600;
+  }
+
+  .tech-grid__item:is(:hover, :focus-visible) .tech-grid__name::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  .tech-grid__items:has(.tech-grid__item:is(:hover, :focus-visible))
+    .tech-grid__item:not(:is(:hover, :focus-visible)) {
+    opacity: 0.68;
+  }
+
+  @media (min-width: 40rem) {
+    .tech-grid__items {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .tech-grid__group {
+      grid-template-columns: minmax(12rem, 0.8fr) minmax(0, 2fr);
+      gap: 3rem;
+      padding-block: 2.5rem 3rem;
+    }
+
+    .tech-grid__items {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap-inline: 2rem;
+    }
+  }
+
+  @media (hover: none) {
+    .tech-grid__item:hover {
+      transform: none;
+    }
+
+    .tech-grid__item:hover .tech-grid__name {
+      font-weight: 450;
+    }
+
+    .tech-grid__item:hover .tech-grid__name::after {
+      transform: scaleX(0);
+    }
+
+    .tech-grid__items:has(.tech-grid__item:hover)
+      .tech-grid__item:not(:hover) {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tech-grid__item,
+    .tech-grid__name::after {
+      transition-duration: 0.01ms;
+    }
+
+    .tech-grid__item:is(:hover, :focus-visible) {
+      transform: none;
+    }
+  }
+</style>
