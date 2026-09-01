@@ -90,11 +90,11 @@ export function AboutContent({
           holdDuration={1_500}
           deleteSpeed={14}
           pauseDuration={600}
-          className="max-w-[38rem] text-[clamp(1.125rem,1.7vw,1.375rem)] leading-[1.65] tracking-[-0.015em] text-foreground"
+          className="max-w-152 text-[clamp(1.125rem,1.7vw,1.375rem)] leading-[1.65] tracking-[-0.015em] text-foreground"
         />
       </div>
 
-      <div className="mx-auto w-full max-w-[22rem] lg:mx-0 lg:ml-auto lg:max-w-[26rem]">
+      <div className="mx-auto w-full max-w-88 lg:mx-0 lg:ml-auto lg:max-w-104">
         <PixelImage
           isActive={isActive}
           reducedMotion={reducedMotion}
