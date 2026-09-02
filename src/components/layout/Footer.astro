@@ -1,0 +1,160 @@
+---
+import { profile } from "@/data/profile";
+import { socialLinks } from "@/data/social-links";
+
+const currentYear = new Date().getFullYear();
+const visibleLinkIds = new Set(["github", "linkedin", "email"]);
+const footerLinks = socialLinks.filter(({ id }) => visibleLinkIds.has(id));
+---
+
+<footer class="site-footer" aria-label="Site footer">
+  <div class="page-container">
+    <div class="site-footer__inner">
+      <p class="site-footer__copyright">
+        &copy; {currentYear} {profile.name}
+      </p>
+
+      {
+        footerLinks.length > 0 && (
+          <nav class="site-footer__nav" aria-label="Social and contact links">
+            <ul>
+              {footerLinks.map(({ label, href }) => {
+                const isExternal = href.startsWith("http");
+
+                return (
+                  <li>
+                    <a
+                      href={href}
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                      aria-label={
+                        isExternal ? `${label} (opens in a new tab)` : undefined
+                      }
+                    >
+                      {label}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        )
+      }
+
+      <a class="site-footer__top" href="#top">
+        Back to top <span aria-hidden="true">&uarr;</span>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  .site-footer__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1.25rem 2rem;
+    align-items: center;
+    border-top: 1px solid var(--border);
+    padding-block: clamp(2.75rem, 2rem + 2.5vw, 4.5rem);
+  }
+
+  .site-footer__copyright {
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .site-footer__nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.25rem 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-footer a {
+    position: relative;
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    color: var(--foreground);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    text-decoration: none;
+  }
+
+  .site-footer__nav a::after,
+  .site-footer__top::after {
+    position: absolute;
+    right: 0;
+    bottom: 0.55rem;
+    left: 0;
+    height: 1px;
+    background: currentColor;
+    content: "";
+    opacity: 0.45;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform var(--duration-normal) var(--ease-standard);
+  }
+
+  .site-footer__nav a:hover::after,
+  .site-footer__nav a:focus-visible::after,
+  .site-footer__top:hover::after,
+  .site-footer__top:focus-visible::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  .site-footer__top {
+    grid-column: 2;
+    justify-self: end;
+    gap: 0.4rem;
+  }
+
+  .site-footer__top span {
+    transition: transform var(--duration-fast) var(--ease-standard);
+  }
+
+  .site-footer__top:hover span,
+  .site-footer__top:focus-visible span {
+    transform: translateY(-0.2rem);
+  }
+
+  @media (max-width: 47.999rem) {
+    .site-footer__inner {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.75rem;
+    }
+
+    .site-footer__nav ul {
+      justify-content: flex-start;
+    }
+
+    .site-footer__top {
+      grid-column: 1;
+      justify-self: start;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-footer__nav a::after,
+    .site-footer__top::after,
+    .site-footer__top span {
+      transition: none;
+    }
+
+    .site-footer__top:hover span,
+    .site-footer__top:focus-visible span {
+      transform: none;
+    }
+  }
+</style>

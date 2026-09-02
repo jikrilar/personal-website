@@ -3,30 +3,55 @@ import { navigationItems } from "@/data/navigation";
 import { siteMetadata } from "@/data/site";
 ---
 
-<header class="sticky top-0 z-[60] bg-background/90 backdrop-blur-sm">
+<header
+  class="site-navbar sticky top-0 z-[60] bg-background/90 backdrop-blur-sm"
+  data-navbar
+  data-menu-open="false"
+>
+  <script is:inline>
+    document.currentScript?.parentElement?.setAttribute("data-menu-ready", "true");
+  </script>
+
   <nav
-    class="page-container flex min-h-24 flex-col justify-center py-1 md:min-h-18 md:flex-row md:items-center md:justify-between md:py-0"
+    class="page-container site-navbar__nav"
     aria-label="Primary navigation"
   >
-    <a
-      class="inline-flex min-h-11 w-fit items-center text-sm font-medium tracking-[-0.02em] text-foreground transition-opacity duration-(--duration-fast) ease-(--ease-standard) hover:opacity-60 md:min-h-0"
-      href="#main-content"
-      aria-label={`${siteMetadata.name}, back to top`}
-    >
-      {siteMetadata.name}
-    </a>
+    <div class="site-navbar__bar">
+      <a
+        class="site-navbar__name"
+        href="#main-content"
+        aria-label={`${siteMetadata.name}, back to top`}
+      >
+        {siteMetadata.name}
+      </a>
 
-    <ul class="grid w-full grid-cols-5 md:w-auto md:flex md:items-center md:gap-5 lg:gap-7">
+      <button
+        class="site-navbar__toggle"
+        type="button"
+        aria-label="Open navigation menu"
+        aria-expanded="false"
+        aria-controls="primary-navigation"
+        data-menu-toggle
+      >
+        <span class="site-navbar__icon" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </button>
+    </div>
+
+    <ul
+      id="primary-navigation"
+      class="site-navbar__links"
+      aria-hidden="false"
+      data-menu-links
+    >
       {
         navigationItems.map(({ href, label }) => (
-          <li class="min-w-0">
-            <a
-              class="group inline-flex min-h-11 w-full items-center justify-center px-0.5 text-[clamp(0.65rem,3.1vw,0.75rem)] font-medium text-muted-foreground transition-[color,transform] duration-(--duration-fast) ease-(--ease-standard) hover:text-foreground active:translate-y-px md:min-h-11 md:w-auto md:px-1 md:text-sm"
-              href={href}
-            >
-              <span class="relative whitespace-nowrap after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-right after:scale-x-0 after:bg-current after:transition-transform after:duration-(--duration-normal) after:ease-(--ease-standard) group-hover:after:origin-left group-hover:after:scale-x-100 group-focus-visible:after:origin-left group-focus-visible:after:scale-x-100">
-                {label}
-              </span>
+          <li>
+            <a href={href} data-menu-link>
+              <span>{label}</span>
             </a>
           </li>
         ))
@@ -35,7 +60,294 @@ import { siteMetadata } from "@/data/site";
   </nav>
 </header>
 
+<script>
+  const desktopMedia = window.matchMedia("(min-width: 48rem)");
+
+  document.querySelectorAll<HTMLElement>("[data-navbar]").forEach((navbar) => {
+    const toggle = navbar.querySelector<HTMLButtonElement>("[data-menu-toggle]");
+    const links = navbar.querySelector<HTMLElement>("[data-menu-links]");
+    const menuLinks = navbar.querySelectorAll<HTMLAnchorElement>("[data-menu-link]");
+
+    if (!toggle || !links) return;
+
+    navbar.dataset.menuReady = "true";
+
+    const setMenuState = (open: boolean, returnFocus = false) => {
+      const isMobile = !desktopMedia.matches;
+      const isOpen = isMobile && open;
+
+      navbar.dataset.menuOpen = String(isOpen);
+      toggle.setAttribute("aria-expanded", String(isOpen));
+      toggle.setAttribute(
+        "aria-label",
+        isOpen ? "Close navigation menu" : "Open navigation menu",
+      );
+
+      if (isMobile && !isOpen) {
+        links.setAttribute("aria-hidden", "true");
+        links.setAttribute("inert", "");
+      } else {
+        links.setAttribute("aria-hidden", "false");
+        links.removeAttribute("inert");
+      }
+
+      if (returnFocus) toggle.focus();
+    };
+
+    toggle.addEventListener("click", () => {
+      setMenuState(toggle.getAttribute("aria-expanded") !== "true");
+    });
+
+    menuLinks.forEach((link) => {
+      link.addEventListener("click", () => setMenuState(false));
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
+        setMenuState(false, true);
+      }
+    });
+
+    desktopMedia.addEventListener("change", () => setMenuState(false));
+    setMenuState(false);
+  });
+</script>
+
 <style>
+  .site-navbar__bar {
+    display: flex;
+    min-height: 4.5rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .site-navbar__name {
+    display: inline-flex;
+    min-width: 0;
+    min-height: 2.75rem;
+    align-items: center;
+    overflow: hidden;
+    color: var(--foreground);
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: opacity var(--duration-fast) var(--ease-standard);
+  }
+
+  .site-navbar__name:hover,
+  .site-navbar__name:focus-visible {
+    opacity: 0.6;
+  }
+
+  .site-navbar__toggle {
+    display: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex: 0 0 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--foreground);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .site-navbar__icon {
+    position: relative;
+    display: block;
+    width: 1.375rem;
+    height: 1rem;
+  }
+
+  .site-navbar__icon span {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: currentColor;
+    transition:
+      transform var(--duration-normal) var(--ease-standard),
+      opacity var(--duration-fast) var(--ease-standard);
+  }
+
+  .site-navbar__icon span:nth-child(1) {
+    top: 0;
+  }
+
+  .site-navbar__icon span:nth-child(2) {
+    top: 0.46875rem;
+  }
+
+  .site-navbar__icon span:nth-child(3) {
+    top: 0.9375rem;
+  }
+
+  .site-navbar[data-menu-open="true"] .site-navbar__icon span:nth-child(1) {
+    transform: translateY(0.46875rem) rotate(45deg);
+  }
+
+  .site-navbar[data-menu-open="true"] .site-navbar__icon span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .site-navbar[data-menu-open="true"] .site-navbar__icon span:nth-child(3) {
+    transform: translateY(-0.46875rem) rotate(-45deg);
+  }
+
+  .site-navbar__links {
+    display: grid;
+    max-height: none;
+    gap: 0;
+    margin: 0;
+    overflow: hidden;
+    padding: 0 0 0.75rem;
+    visibility: visible;
+    list-style: none;
+    background: var(--background);
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+      max-height var(--duration-normal) var(--ease-standard),
+      opacity var(--duration-fast) var(--ease-standard),
+      transform var(--duration-normal) var(--ease-standard),
+      visibility 0s linear var(--duration-normal);
+  }
+
+  .site-navbar[data-menu-ready="true"] .site-navbar__toggle {
+    display: inline-flex;
+  }
+
+  .site-navbar[data-menu-ready="true"] .site-navbar__links {
+    max-height: 0;
+    padding-bottom: 0;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-0.25rem);
+  }
+
+  .site-navbar[data-menu-ready="true"][data-menu-open="true"]
+    .site-navbar__links {
+    max-height: 18rem;
+    padding-bottom: 0.75rem;
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0s;
+  }
+
+  .site-navbar__links li {
+    min-width: 0;
+  }
+
+  .site-navbar__links a {
+    display: flex;
+    min-height: 3rem;
+    width: 100%;
+    align-items: center;
+    color: var(--muted-foreground);
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+      color var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard);
+  }
+
+  .site-navbar__links a:hover,
+  .site-navbar__links a:focus-visible {
+    color: var(--foreground);
+  }
+
+  .site-navbar__links a:active {
+    transform: translateY(1px);
+  }
+
+  .site-navbar__links a span {
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .site-navbar__links a span::after {
+    position: absolute;
+    right: 0;
+    bottom: -0.125rem;
+    left: 0;
+    height: 1px;
+    background: currentColor;
+    content: "";
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform var(--duration-normal) var(--ease-standard);
+  }
+
+  .site-navbar__links a:hover span::after,
+  .site-navbar__links a:focus-visible span::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  @media (min-width: 48rem) {
+    .site-navbar__nav {
+      display: flex;
+      min-height: 4.5rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .site-navbar__bar {
+      display: contents;
+    }
+
+    .site-navbar__name {
+      min-height: 0;
+    }
+
+    .site-navbar__toggle,
+    .site-navbar[data-menu-ready="true"] .site-navbar__toggle {
+      display: none;
+    }
+
+    .site-navbar__links,
+    .site-navbar[data-menu-ready="true"] .site-navbar__links,
+    .site-navbar[data-menu-ready="true"][data-menu-open="true"]
+      .site-navbar__links {
+      display: flex;
+      width: auto;
+      max-height: none;
+      align-items: center;
+      gap: 1.25rem;
+      overflow: visible;
+      padding: 0;
+      visibility: visible;
+      background: transparent;
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+
+    .site-navbar__links a {
+      min-height: 2.75rem;
+      width: auto;
+      padding-inline: 0.25rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .site-navbar__links,
+    .site-navbar[data-menu-ready="true"] .site-navbar__links,
+    .site-navbar[data-menu-ready="true"][data-menu-open="true"]
+      .site-navbar__links {
+      gap: 1.75rem;
+    }
+  }
+
   :global(#about),
   :global(#skills),
   :global(#projects),
@@ -51,6 +363,21 @@ import { siteMetadata } from "@/data/site";
     :global(#experience),
     :global(#contact) {
       scroll-margin-top: 5.5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-navbar__name,
+    .site-navbar__icon span,
+    .site-navbar__links,
+    .site-navbar__links a,
+    .site-navbar__links a span::after {
+      transition: none;
+    }
+
+    .site-navbar__links,
+    .site-navbar__links a:active {
+      transform: none;
     }
   }
 </style>
