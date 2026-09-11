@@ -1,3 +1,5 @@
+import sqlAdvancedImage from "@/assets/certificates/sql_advanced_certificate.webp";
+
 export interface Certificate {
   id: string;
   title: string;
@@ -16,6 +18,7 @@ export const certificates: Certificate[] = [
     title: "SQL (Advanced)",
     issuer: "HackerRank",
     issuedAt: "Sep 2026",
+    image: sqlAdvancedImage,
     credentialUrl: "https://www.hackerrank.com/certificates/e0773c45f209",
     order: 1,
   },
