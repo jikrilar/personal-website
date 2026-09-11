@@ -5,6 +5,7 @@ import {
   validateContactPayload,
   type ContactFieldErrors,
   type ContactPayload,
+  type ContactSubmissionPayload,
 } from "@/lib/contact/schema";
 import {
   ContactSubmissionError,
@@ -27,7 +28,9 @@ export default function ContactForm() {
   const [fieldErrors, setFieldErrors] = useState<ContactFieldErrors>({});
   const [status, setStatus] = useState<SubmissionStatus>("idle");
   const [statusMessage, setStatusMessage] = useState("");
+  const [website, setWebsite] = useState("");
   const submittingRef = useRef(false);
+  const submissionIdRef = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -36,6 +39,7 @@ export default function ContactForm() {
 
   function updateField(field: keyof ContactPayload, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
+    submissionIdRef.current = null;
 
     if (fieldErrors[field]) {
       setFieldErrors((current) => ({ ...current, [field]: undefined }));
@@ -80,17 +84,25 @@ export default function ContactForm() {
 
     submittingRef.current = true;
     abortControllerRef.current = new AbortController();
+    submissionIdRef.current ??= crypto.randomUUID();
     setFieldErrors({});
     setStatus("loading");
     setStatusMessage("Sending your message...");
 
     try {
+      const submission: ContactSubmissionPayload = {
+        ...payload,
+        website,
+        submissionId: submissionIdRef.current,
+      };
       const response = await submitContactMessage(
-        payload,
+        submission,
         abortControllerRef.current.signal,
       );
 
       setValues(EMPTY_FORM);
+      setWebsite("");
+      submissionIdRef.current = null;
       setStatus("success");
       setStatusMessage(response.message);
     } catch (error) {
@@ -116,6 +128,19 @@ export default function ContactForm() {
       onSubmit={handleSubmit}
       aria-busy={status === "loading"}
     >
+      <div hidden aria-hidden="true">
+        <label htmlFor="contact-website">Leave this field blank</label>
+        <input
+          id="contact-website"
+          name="website"
+          type="text"
+          autoComplete="off"
+          tabIndex={-1}
+          value={website}
+          onChange={(event) => setWebsite(event.target.value)}
+        />
+      </div>
+
       <div className="contact-form__field">
         <label htmlFor="contact-name">Name</label>
         <input

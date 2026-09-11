@@ -1,4 +1,7 @@
-import type { ContactPayload, ContactResponse } from "@/lib/contact/schema";
+import type {
+  ContactResponse,
+  ContactSubmissionPayload,
+} from "@/lib/contact/schema";
 
 export const CONTACT_ENDPOINT = "/api/contact";
 
@@ -17,7 +20,7 @@ function isContactResponse(value: unknown): value is ContactResponse {
 }
 
 export async function submitContactMessage(
-  payload: ContactPayload,
+  payload: ContactSubmissionPayload,
   signal?: AbortSignal,
 ): Promise<ContactResponse> {
   let response: Response;
@@ -47,7 +50,7 @@ export async function submitContactMessage(
     const message =
       isContactResponse(body) && body.message
         ? body.message
-        : "Message delivery is not configured yet. Please try again later.";
+        : "Your message could not be sent. Please try again later.";
 
     throw new ContactSubmissionError(message);
   }

@@ -6,13 +6,13 @@ export interface SkillGroup {
 
 export const skillGroups: SkillGroup[] = [
   {
-    id: "programming-languages",
-    label: "Programming Languages",
-    skills: ["HTML", "CSS", "PHP", "Javascript", "Typescript"],
+    id: "languages-and-web",
+    label: "Languages & Web",
+    skills: ["PHP", "JavaScript", "TypeScript", "HTML", "CSS"],
   },
   {
-    id: "frameworks",
-    label: "Frameworks",
+    id: "frameworks-and-libraries",
+    label: "Frameworks & Libraries",
     skills: ["Laravel", "Livewire", "Filament", "Next.js", "React"],
   },
   {
@@ -24,11 +24,11 @@ export const skillGroups: SkillGroup[] = [
     id: "api-and-integration",
     label: "API & Integration",
     skills: [
-      "RESTful API",
-      "Webhook Integration",
-      "OAuth Authentication",
-      "Third-Party API Integration",
-      "Payment Gateway Integration (Doku, Midtrans, Stripe)",
+      "REST APIs",
+      "Webhooks",
+      "OAuth",
+      "Third-Party APIs",
+      "Payment Gateways (DOKU, Midtrans, Stripe)",
     ],
   },
   {
@@ -37,17 +37,13 @@ export const skillGroups: SkillGroup[] = [
     skills: ["Git", "GitHub"],
   },
   {
-    id: "deployment-and-infrastructure",
-    label: "Deployment & Infrastructure",
-    skills: ["Linux Server", "Docker", "Vercel", "AWS", "cPanel"],
+    id: "infrastructure-and-deployment",
+    label: "Infrastructure & Deployment",
+    skills: ["Linux", "Docker", "Vercel", "AWS", "cPanel"],
   },
   {
     id: "development-tools",
     label: "Development Tools",
-    skills: [
-      "Postman",
-      "Coding Agent (OpenCode, Claude Code, Codex)",
-      "AI Model (Gemini, Chatgpt, Claude)",
-    ],
+    skills: ["Postman"],
   },
 ];

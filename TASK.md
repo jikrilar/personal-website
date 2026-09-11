@@ -2,7 +2,7 @@
 
 ## Personal Portfolio Website
 
-**Document Version:** 1.0  
+**Document Version:** 1.1
 **Status:** Ready for Development  
 **Related Documents:** `prd.md`, `architecture.md`, `design-system.md`  
 **Primary Stack:** Astro, TypeScript, Tailwind CSS  
@@ -115,6 +115,9 @@ PROJECT FOUNDATION
              │
              ▼
           EXPERIENCE
+             │
+             ▼
+         CERTIFICATES
              │
              ▼
            CONTACT
@@ -346,6 +349,8 @@ Membuat navbar minimal, borderless, responsive, dan menyatu dengan page.
   - Projects
   - Experience
   - Contact
+
+Certificates adalah section resmi, tetapi keputusan untuk menambahkannya ke primary Navbar masih **pending**. TASK Navbar tidak berubah sampai product decision tersebut dikunci.
 
 ### Visual
 
@@ -807,7 +812,147 @@ Jangan mencari Aceternity/third-party timeline sebagai replacement.
 
 ---
 
-# TASK 08 — Send Message / Contact Section
+# TASK 08 — Certificates Section
+
+## Agent Prompt Name
+
+```text
+Certificates Section
+```
+
+## Goal
+
+Membuat custom **Interactive Certificate Gallery** yang data-driven, accessible, responsive, static-first, dan progressively enhanced.
+
+Certificates ditempatkan setelah Experience dan sebelum Contact.
+
+## Component Ownership
+
+```text
+CUSTOM COMPONENT
+```
+
+Jangan gunakan Magic UI MCP atau mengganti component dengan Magic UI, Aceternity, React Bits, carousel library, atau third-party gallery library.
+
+## Tasks
+
+### Certificate Data
+
+- [ ] Buat typed data source di `src/data/certificates.ts`.
+- [ ] Pisahkan certificate content dari UI.
+- [ ] Gunakan hanya data certificate yang diberikan user atau source credential yang dapat diverifikasi.
+- [ ] Jangan menginfer certificate dari `content/CV.md`, skills, technologies, dependency, atau nama project.
+- [ ] Jangan membuat certificate, issuer, date, credential URL, credential ID, atau image path palsu.
+- [ ] Urutkan entries menggunakan field `order`.
+
+Conceptual interface:
+
+```ts
+interface Certificate {
+  id: string;
+  title: string;
+  issuer: string;
+  issuedAt: string;
+  image: string;
+  credentialUrl?: string;
+  credentialId?: string;
+  skills?: string[];
+  order: number;
+}
+```
+
+Schema dapat disesuaikan dengan existing typed data conventions jika structure tersebut sudah memadai.
+
+### Section and Static Markup
+
+- [ ] Buat semantic `Certificates.astro` dengan section ID `certificates`.
+- [ ] Buat custom `CertificateGallery.astro` atau equivalent sesuai existing structure.
+- [ ] Render title, issuer, issued date, preview image, dan optional credential link sebagai static HTML.
+- [ ] Pastikan semua certificate tetap readable dan usable jika JavaScript gagal.
+- [ ] Gunakan Astro + CSS/Tailwind sebagai default.
+- [ ] Gunakan minimal vanilla JavaScript hanya untuk selection enhancement.
+- [ ] Jangan menggunakan React island kecuali behavior final terbukti lebih kompleks daripada vanilla enhancement.
+
+### Desktop Master-Detail Interaction
+
+- [ ] Tampilkan certificate list/selector dan large active certificate preview.
+- [ ] Certificate pertama boleh menjadi active/default item.
+- [ ] Hover dapat mengubah active preview.
+- [ ] Keyboard focus dapat mengubah active preview.
+- [ ] Click dapat mengubah active preview.
+- [ ] Hover bukan satu-satunya selection mechanism.
+- [ ] Gunakan semantic interactive element untuk selector.
+- [ ] Jangan membuat nested interactive controls seperti `<a>` di dalam `<button>`.
+
+### Preview and Credential Links
+
+- [ ] Gunakan meaningful alt text pada certificate image.
+- [ ] Gunakan `object-fit: contain` agar keseluruhan document terlihat.
+- [ ] Pertahankan warna asli certificate bila diperlukan untuk fidelity dokumen.
+- [ ] Gunakan neutral surrounding UI.
+- [ ] Render credential URL sebagai semantic external `<a>` hanya jika tersedia.
+- [ ] Gunakan accessible external-link treatment.
+
+### Visual and Motion
+
+- [ ] Gunakan editorial rows, clear type hierarchy, generous whitespace, dan thin separators.
+- [ ] Hindari heavy card treatment.
+- [ ] Active item boleh menggunakan emphasis, subtle indicator, atau small horizontal movement.
+- [ ] Preview boleh menggunakan subtle crossfade dan very small scale transition.
+- [ ] Gunakan duration sekitar 200–350ms sesuai existing motion token.
+- [ ] Jangan gunakan tilt, 3D rotation, spring/bounce, glow, colorful border, marquee, autoplay carousel, atau heavy parallax.
+
+### Mobile
+
+- [ ] Ubah desktop master-detail menjadi readable vertical list.
+- [ ] Tampilkan preview image dan credential link langsung pada setiap entry.
+- [ ] Jangan bergantung pada hover atau hidden active-preview state.
+- [ ] Pastikan tidak ada horizontal overflow.
+
+### Accessibility and Reduced Motion
+
+- [ ] Hover, focus, dan click/tap memiliki equivalent behavior.
+- [ ] Focus-visible jelas.
+- [ ] Keyboard navigation bekerja.
+- [ ] Credential links tidak dinest di dalam selector control.
+- [ ] Reduced motion menggunakan instant/simple state change.
+- [ ] Tidak ada transform-heavy transition atau crossfade dependency pada reduced motion.
+
+### Validation
+
+- [ ] Verify responsive desktop, tablet, dan mobile layout.
+- [ ] Verify keyboard and touch interaction.
+- [ ] Verify meaningful alt text dan valid external links.
+- [ ] Verify static content tanpa JavaScript.
+- [ ] Run TypeScript/type check.
+- [ ] Run production build.
+
+## Out of Scope
+
+- Magic UI certificate/gallery component.
+- Third-party gallery or carousel library.
+- Autoplay carousel.
+- Inferred or placeholder factual certificate data.
+- Certificate implementation sebelum user-provided data tersedia.
+
+## Acceptance Criteria
+
+- [ ] Certificates berada setelah Experience dan sebelum Contact.
+- [ ] Menggunakan typed local certificate data.
+- [ ] Menggunakan custom Interactive Certificate Gallery.
+- [ ] Desktop master-detail interaction bekerja melalui hover, focus, dan click.
+- [ ] Mobile menggunakan readable stacked list.
+- [ ] Static fallback lengkap dan usable.
+- [ ] Credential links semantic dan accessible.
+- [ ] Certificate image menggunakan meaningful alt dan `contain` treatment.
+- [ ] Visual surrounding UI tetap monochrome dan editorial.
+- [ ] Reduced motion respected.
+- [ ] Tidak ada unnecessary React hydration atau dependency baru.
+- [ ] Type check dan production build berhasil.
+
+---
+
+# TASK 09 — Send Message / Contact Section
 
 ## Agent Prompt Name
 
@@ -928,7 +1073,7 @@ Jangan menambahkan CAPTCHA berat tanpa kebutuhan.
 
 ---
 
-# TASK 09 — Footer Section
+# TASK 10 — Footer Section
 
 ## Agent Prompt Name
 
@@ -975,7 +1120,7 @@ Membuat footer minimal yang menutup page tanpa visual noise.
 
 ---
 
-# TASK 10 — SEO & Metadata
+# TASK 11 — SEO & Metadata
 
 ## Agent Prompt Name
 
@@ -1010,7 +1155,7 @@ Menyelesaikan metadata dan indexing foundation.
 
 ---
 
-# TASK 11 — Performance Optimization
+# TASK 12 — Performance Optimization
 
 ## Agent Prompt Name
 
@@ -1035,6 +1180,7 @@ Mengoptimalkan performance setelah seluruh major section selesai.
 
 - [ ] Optimize profile image.
 - [ ] Optimize project screenshots.
+- [ ] Optimize certificate images without reducing document readability.
 - [ ] Responsive image sizing.
 - [ ] Proper dimensions.
 - [ ] Lazy loading below fold.
@@ -1069,7 +1215,7 @@ Mengoptimalkan performance setelah seluruh major section selesai.
 
 ---
 
-# TASK 12 — Accessibility Review
+# TASK 13 — Accessibility Review
 
 ## Agent Prompt Name
 
@@ -1106,7 +1252,7 @@ Melakukan accessibility pass setelah semua section selesai.
 
 ---
 
-# TASK 13 — Responsive QA
+# TASK 14 — Responsive QA
 
 ## Agent Prompt Name
 
@@ -1139,6 +1285,7 @@ Large        ~1920px
 - [ ] Skills grid.
 - [ ] Bento Grid.
 - [ ] Timeline.
+- [ ] Certificate Gallery desktop master-detail and mobile stacked layout.
 - [ ] Contact form.
 - [ ] Footer.
 - [ ] No horizontal overflow.
@@ -1154,7 +1301,7 @@ Large        ~1920px
 
 ---
 
-# TASK 14 — Final Visual Polish
+# TASK 15 — Final Visual Polish
 
 ## Agent Prompt Name
 
@@ -1185,6 +1332,7 @@ Melakukan consistency pass tanpa redesign.
 
 - [ ] Consistent neutral borders.
 - [ ] Border Beam monochrome.
+- [ ] Certificate preview treatment preserves document fidelity.
 - [ ] No accidental colorful defaults.
 
 ### Motion
@@ -1210,7 +1358,7 @@ Melakukan consistency pass tanpa redesign.
 
 ---
 
-# TASK 15 — Final Build & Deployment Readiness
+# TASK 16 — Final Build & Deployment Readiness
 
 ## Agent Prompt Name
 
@@ -1278,15 +1426,16 @@ Task 04 — About
 Task 05 — Skills
 Task 06 — Projects
 Task 07 — Experience
-Task 08 — Contact
-Task 09 — Footer
+Task 08 — Certificates
+Task 09 — Contact
+Task 10 — Footer
 
-Task 10 — SEO
-Task 11 — Performance
-Task 12 — Accessibility
-Task 13 — Responsive QA
-Task 14 — Visual Polish
-Task 15 — Deployment Readiness
+Task 11 — SEO
+Task 12 — Performance
+Task 13 — Accessibility
+Task 14 — Responsive QA
+Task 15 — Visual Polish
+Task 16 — Deployment Readiness
 ```
 
 ---
@@ -1363,29 +1512,32 @@ Agar prompting lebih cepat:
 "Kerjakan task experience section"
 → TASK 07
 
-"Kerjakan task contact section"
+"Kerjakan task certificates section"
 → TASK 08
 
-"Kerjakan task footer"
+"Kerjakan task contact section"
 → TASK 09
 
-"Kerjakan task SEO"
+"Kerjakan task footer"
 → TASK 10
 
-"Kerjakan task performance"
+"Kerjakan task SEO"
 → TASK 11
 
-"Kerjakan task accessibility"
+"Kerjakan task performance"
 → TASK 12
 
-"Kerjakan task responsive QA"
+"Kerjakan task accessibility"
 → TASK 13
 
-"Kerjakan task visual polish"
+"Kerjakan task responsive QA"
 → TASK 14
 
-"Kerjakan task deployment readiness"
+"Kerjakan task visual polish"
 → TASK 15
+
+"Kerjakan task deployment readiness"
+→ TASK 16
 ```
 
 ---
@@ -1400,6 +1552,10 @@ Skills
 
 Experience
 → mengganti custom timeline dengan Aceternity/third-party timeline
+
+Certificates
+→ mengganti custom gallery dengan Magic UI/Aceternity/React Bits/third-party gallery
+→ menginfer certificate dari CV, skills, technologies, atau dependency
 
 Contact
 → mengganti Border Beam menjadi Shine Border
@@ -1431,14 +1587,15 @@ Progress dapat ditandai langsung pada dokumen ini.
 [ ] TASK 05 — Skills
 [ ] TASK 06 — Projects
 [ ] TASK 07 — Experience
-[ ] TASK 08 — Contact
-[ ] TASK 09 — Footer
-[ ] TASK 10 — SEO
-[ ] TASK 11 — Performance
-[ ] TASK 12 — Accessibility
-[ ] TASK 13 — Responsive QA
-[ ] TASK 14 — Visual Polish
-[ ] TASK 15 — Deployment Readiness
+[ ] TASK 08 — Certificates
+[ ] TASK 09 — Contact
+[ ] TASK 10 — Footer
+[ ] TASK 11 — SEO
+[ ] TASK 12 — Performance
+[ ] TASK 13 — Accessibility
+[ ] TASK 14 — Responsive QA
+[ ] TASK 15 — Visual Polish
+[ ] TASK 16 — Deployment Readiness
 ```
 
 ---
