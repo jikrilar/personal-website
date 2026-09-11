@@ -351,8 +351,9 @@ const getImageAlt = (certificate: Certificate) =>
 
 <style>
   .certificate-gallery {
-    --certificate-preview-duration-in: 300ms;
-    --certificate-preview-duration-out: 250ms;
+    --certificate-divider-duration: 350ms;
+    --certificate-preview-duration-in: 350ms;
+    --certificate-preview-duration-out: 300ms;
 
     display: block;
     min-width: 0;
@@ -515,8 +516,9 @@ const getImageAlt = (certificate: Certificate) =>
       background: var(--border);
       content: "";
       transition:
-        width var(--duration-normal) var(--ease-standard),
-        background-color var(--duration-normal) var(--ease-standard);
+        width var(--certificate-divider-duration) var(--ease-standard),
+        background-color var(--certificate-divider-duration)
+          var(--ease-standard);
     }
 
     .certificate-gallery__selector {
