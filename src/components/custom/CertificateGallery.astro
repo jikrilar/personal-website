@@ -490,6 +490,7 @@ const getImageAlt = (certificate: Certificate) =>
     .certificate-gallery.is-enhanced .certificate-gallery__desktop {
       position: relative;
       display: block;
+      container-type: inline-size;
     }
 
     .certificate-gallery__selectors {
@@ -498,12 +499,24 @@ const getImageAlt = (certificate: Certificate) =>
     }
 
     .certificate-gallery__selector-item {
+      position: relative;
       min-width: 0;
       padding-block: 1.5rem;
-      border-bottom: 1px solid var(--border);
+      transition: opacity var(--duration-normal) var(--ease-standard);
+    }
+
+    .certificate-gallery__selector-item::after {
+      position: absolute;
+      right: auto;
+      bottom: 0;
+      left: 0;
+      width: 100cqi;
+      height: 1px;
+      background: var(--border);
+      content: "";
       transition:
-        border-color var(--duration-normal) var(--ease-standard),
-        opacity var(--duration-normal) var(--ease-standard);
+        width var(--duration-normal) var(--ease-standard),
+        background-color var(--duration-normal) var(--ease-standard);
     }
 
     .certificate-gallery__selector {
@@ -540,8 +553,9 @@ const getImageAlt = (certificate: Certificate) =>
       transition: font-weight var(--duration-fast) var(--ease-standard);
     }
 
-    .certificate-gallery__selector-item.is-active {
-      border-color: var(--border-strong);
+    .certificate-gallery__selector-item.is-active::after {
+      width: 100%;
+      background: var(--border-strong);
     }
 
     .certificate-gallery__selector-item.is-active
@@ -620,6 +634,7 @@ const getImageAlt = (certificate: Certificate) =>
 
   @media (prefers-reduced-motion: reduce) {
     .certificate-gallery__selector-item,
+    .certificate-gallery__selector-item::after,
     .certificate-gallery__selector,
     .certificate-gallery__title,
     .certificate-gallery__preview,
