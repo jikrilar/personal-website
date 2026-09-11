@@ -1,11 +1,12 @@
 import sqlAdvancedImage from "@/assets/certificates/sql_advanced_certificate.webp";
+import type { ImageMetadata } from "astro";
 
 export interface Certificate {
   id: string;
   title: string;
   issuer: string;
   issuedAt: string;
-  image?: string;
+  image?: ImageMetadata;
   credentialUrl?: string;
   credentialId?: string;
   skills?: string[];

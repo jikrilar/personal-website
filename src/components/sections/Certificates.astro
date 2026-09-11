@@ -1,0 +1,24 @@
+---
+import CertificateGallery from "@/components/custom/CertificateGallery.astro";
+import { certificates } from "@/data/certificates";
+
+const sortedCertificates = [...certificates].sort((a, b) => a.order - b.order);
+---
+
+{
+  sortedCertificates.length > 0 && (
+    <section
+      id="certificates"
+      class="section-spacing scroll-mt-28 overflow-clip md:scroll-mt-22"
+      aria-labelledby="certificates-title"
+    >
+      <div class="page-container">
+        <header class="mb-14 md:mb-20">
+          <h2 id="certificates-title">Certificates</h2>
+        </header>
+
+        <CertificateGallery certificates={sortedCertificates} />
+      </div>
+    </section>
+  )
+}
