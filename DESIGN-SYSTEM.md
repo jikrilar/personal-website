@@ -2,9 +2,9 @@
 
 ## Personal Portfolio Website
 
-**Document Version:** 1.0  
+**Document Version:** 1.1
 **Status:** Ready for Development  
-**Related Documents:** `prd.md` v1.1, `architecture.md` v1.0  
+**Related Documents:** `prd.md` v1.2, `architecture.md` v1.1
 **Primary Stack:** Astro, Tailwind CSS, TypeScript  
 **UI / Motion:** Magic UI + Custom Components  
 **Design Direction:** Monochrome, Clean, Editorial, Interactive
@@ -468,7 +468,7 @@ desktop    144–192px
 
 Hero dapat memiliki lebih sedikit atau lebih banyak tergantung viewport.
 
-Experience dan Skills sebaiknya memiliki whitespace besar karena menjadi section yang lebih calm.
+Experience, Certificates, dan Skills sebaiknya memiliki whitespace besar karena menjadi section yang lebih calm.
 
 ---
 
@@ -496,6 +496,11 @@ Experience:
 3–4 columns metadata
 +
 8–9 columns content
+
+Certificates:
+selector/list
++
+large document preview
 
 Contact:
 centered card
@@ -706,6 +711,7 @@ Tech Grid          → no stagger
 Bento effect       → static
 Border Beam        → static border
 Scroll Timeline    → static line
+Certificate Gallery → instant/simple state change
 Particles          → disabled
 Smooth scroll      → disabled
 ```
@@ -723,6 +729,7 @@ About        → Strong
 Skills       → Calm
 Projects     → Strong
 Experience   → Calm
+Certificates → Calm / Editorial
 Contact      → Strong
 Footer       → Minimal
 ```
@@ -828,6 +835,8 @@ Projects
 Experience
 Contact
 ```
+
+Certificates adalah section resmi, tetapi penambahannya ke primary Navbar masih **decision pending**. Jangan menambahkan navigation item baru hanya dari design-system documentation ini.
 
 ## Hover
 
@@ -1224,7 +1233,84 @@ only if implementation remains clean.
 
 ---
 
-# 34. Contact / Send Message Section
+# 34. Certificates Section
+
+## Component
+
+```text
+Custom Interactive Certificate Gallery
+```
+
+Certificates menggunakan high whitespace, thin separators, typography hierarchy, dan restrained motion. Surrounding UI tetap monochrome dan tidak menggunakan heavy card treatment. Gunakan existing color, border, surface, spacing, dan motion tokens; jangan membuat token warna khusus Certificates.
+
+## Certificate List
+
+Desktop menggunakan editorial selector rows:
+
+```text
+01  Certificate Title
+    Issuer · Issued Date
+    View Credential ↗
+
+────────────────────────
+```
+
+- Number/date menggunakan small mono or muted treatment.
+- Certificate title menjadi text paling prominent pada row.
+- Issuer dan issued date menggunakan secondary/muted hierarchy.
+- Active row dapat menggunakan foreground emphasis, subtle indicator/progress line, stronger neutral divider, atau small horizontal movement.
+- Inactive row tetap readable dan tidak diturunkan ke contrast yang terlalu rendah.
+- Selector tidak dibungkus heavy card.
+- Hover, focus, dan click/tap menghasilkan selection yang equivalent; hover bukan satu-satunya mechanism.
+- Credential link adalah semantic `<a>` terpisah dari selector; jangan membuat nested `<a>` di dalam `<button>`.
+
+## Active Preview
+
+Desktop memasangkan certificate selector dengan large active document preview.
+
+```text
+background: surface / surface-muted
+border: 1px solid var(--border)
+shadow: none or very subtle neutral only
+image fit: contain
+```
+
+Certificate image boleh mempertahankan warna aslinya agar fidelity credential terjaga. Jangan menggunakan `cover` atau cropping yang menghilangkan bagian dokumen. Preview image memiliki meaningful `alt`.
+
+## Motion
+
+Approved transitions:
+
+```text
+active item emphasis
+small horizontal translation
+subtle indicator/progress line
+preview crossfade
+very small preview scale
+```
+
+Gunakan `--duration-normal` atau durasi sekitar 200–350ms dengan existing easing. Jangan menggunakan large tilt, 3D rotation, spring/bounce, glow, colorful border, marquee, autoplay carousel, atau heavy parallax.
+
+Pada `prefers-reduced-motion: reduce`, hilangkan transform-heavy transition dan crossfade dependency. Selection berubah secara instant/simple dan seluruh content tetap usable.
+
+## Responsive
+
+Desktop/tablet yang cukup lebar menggunakan master-detail layout: certificate list/selector + active preview. Mobile berubah menjadi vertical stacked list:
+
+```text
+Number
+Certificate Title
+Issuer · Issued Date
+Certificate Preview
+View Credential ↗
+Divider
+```
+
+Image dan credential link harus langsung discoverable. Mobile tidak membutuhkan hover atau active-preview state untuk memahami certificate.
+
+---
+
+# 35. Contact / Send Message Section
 
 ## Background
 
@@ -1246,7 +1332,7 @@ Avoid visual noise behind form fields.
 
 ---
 
-# 35. Contact Form Card
+# 36. Contact Form Card
 
 Add:
 
@@ -1269,7 +1355,7 @@ no heavy shadow
 
 ---
 
-# 36. Form Fields
+# 37. Form Fields
 
 Fields:
 
@@ -1301,7 +1387,7 @@ Placeholder tidak boleh menggantikan label.
 
 ---
 
-# 37. Form Button
+# 38. Form Button
 
 Recommended:
 
@@ -1342,7 +1428,7 @@ If semantic status color is introduced, use it minimally and only for feedback�
 
 ---
 
-# 38. Footer
+# 39. Footer
 
 Minimal.
 
@@ -1368,7 +1454,7 @@ Optional top border may be used only if visual separation is needed.
 
 ---
 
-# 39. Buttons
+# 40. Buttons
 
 ## Primary
 
@@ -1402,7 +1488,7 @@ Recommended height:
 
 ---
 
-# 40. Link Styling
+# 41. Link Styling
 
 Inline links should be identifiable.
 
@@ -1424,7 +1510,7 @@ or Lucide arrow icon.
 
 ---
 
-# 41. Focus States
+# 42. Focus States
 
 All interactive elements must have visible focus.
 
@@ -1438,7 +1524,7 @@ Do not remove outline without replacement.
 
 ---
 
-# 42. Image Treatment
+# 43. Image Treatment
 
 Profile image:
 
@@ -1464,9 +1550,18 @@ Recommended aspect ratio:
 
 depending Bento placement.
 
+Certificate images:
+
+```text
+retain original document color
+object-fit: contain
+no destructive crop
+neutral surrounding surface
+```
+
 ---
 
-# 43. Background Effects
+# 44. Background Effects
 
 Only approved background effects:
 
@@ -1489,7 +1584,7 @@ unless design system is explicitly revised.
 
 ---
 
-# 44. Component Library Usage
+# 45. Component Library Usage
 
 Approved Magic UI components:
 
@@ -1508,13 +1603,14 @@ Custom components:
 ```text
 Interactive Tech Stack Grid
 Scroll Timeline
+Interactive Certificate Gallery
 ```
 
 Do not replace custom components with third-party components without revising design documentation.
 
 ---
 
-# 45. Magic UI MCP Design Rules
+# 46. Magic UI MCP Design Rules
 
 Magic UI MCP may be used to:
 
@@ -1529,11 +1625,12 @@ Magic UI MCP must not be used to:
 - add colorful UI;
 - replace Skills custom component;
 - replace Experience custom component;
+- replace Certificates custom component;
 - add components not defined in PRD/design system without explicit requirement.
 
 ---
 
-# 46. Copy Tone
+# 47. Copy Tone
 
 Writing tone:
 
@@ -1552,7 +1649,7 @@ Avoid:
 
 ---
 
-# 47. Content Length Guidelines
+# 48. Content Length Guidelines
 
 ## Hero
 
@@ -1579,6 +1676,14 @@ Avoid:
 2–4 short sentences
 ```
 
+## Certificates
+
+```text
+1 concise title
+issuer + issued date metadata
+1 credential link when available
+```
+
 ## Contact
 
 ```text
@@ -1587,7 +1692,7 @@ Avoid:
 
 ---
 
-# 48. Accessibility
+# 49. Accessibility
 
 Minimum standards:
 
@@ -1613,7 +1718,7 @@ should be hidden from assistive technology where appropriate.
 
 ---
 
-# 49. Dark Mode
+# 50. Dark Mode
 
 If dark mode is implemented:
 
@@ -1631,7 +1736,7 @@ Theme transition should be subtle.
 
 ---
 
-# 50. Do / Don't
+# 51. Do / Don't
 
 ## Do
 
@@ -1659,7 +1764,7 @@ use multiple component libraries for the same purpose
 
 ---
 
-# 51. Suggested CSS Variables
+# 52. Suggested CSS Variables
 
 ```css
 :root {
@@ -1704,7 +1809,7 @@ use multiple component libraries for the same purpose
 
 ---
 
-# 52. Visual QA Checklist
+# 53. Visual QA Checklist
 
 Before component is considered done:
 
@@ -1725,7 +1830,7 @@ Before component is considered done:
 
 ---
 
-# 53. Section Acceptance Criteria
+# 54. Section Acceptance Criteria
 
 ## Intro
 
@@ -1785,6 +1890,17 @@ Before component is considered done:
 - [ ] No zig-zag card layout.
 - [ ] Static fallback works.
 
+## Certificates
+
+- [ ] Custom Interactive Certificate Gallery is used.
+- [ ] Desktop uses a clear selector + active preview layout.
+- [ ] Mobile uses a readable stacked list without hover dependency.
+- [ ] Hover, focus, and click/tap have equivalent selection behavior.
+- [ ] Credential links are semantic and not nested inside selector controls.
+- [ ] Certificate previews use meaningful alt text and `contain` treatment.
+- [ ] Original certificate color/fidelity may be retained while surrounding UI stays monochrome.
+- [ ] Reduced motion uses instant/simple state changes.
+
 ## Contact
 
 - [ ] Particles background used.
@@ -1802,7 +1918,7 @@ Before component is considered done:
 
 ---
 
-# 54. Final Design Direction
+# 55. Final Design Direction
 
 The final visual language is:
 
@@ -1820,6 +1936,8 @@ Selective Magic UI Motion
 Custom Interactive Skills
 +
 Custom Scroll Timeline
++
+Custom Interactive Certificate Gallery
 +
 Minimal Shadows
 +

@@ -71,7 +71,7 @@ selective React hydration
 +
 typed local content
 +
-custom Skills and Experience sections
+custom Skills, Experience, and Certificates sections
 ```
 
 Visual direction:
@@ -93,15 +93,16 @@ Generous whitespace
 The page structure is fixed as follows:
 
 ```text
-0. Intro / Loading
+0. Intro / Loading Visual
 1. Navbar
 2. Hero
 3. About
 4. Skills
 5. Projects
 6. Experience
-7. Send Message / Contact
-8. Footer
+7. Certificates
+8. Send Message / Contact
+9. Footer
 ```
 
 Approved implementation:
@@ -130,6 +131,9 @@ Projects
 
 Experience
 → custom Scroll Timeline
+
+Certificates
+→ custom Interactive Certificate Gallery
 
 Contact
 → Magic UI Particles
@@ -232,31 +236,35 @@ task experience
 task experience section
 → TASK 07
 
+task certificates
+task certificates section
+→ TASK 08
+
 task contact
 task send message
 task contact section
-→ TASK 08
-
-task footer
 → TASK 09
 
-task SEO
+task footer
 → TASK 10
 
-task performance
+task SEO
 → TASK 11
 
-task accessibility
+task performance
 → TASK 12
 
-task responsive QA
+task accessibility
 → TASK 13
 
-task visual polish
+task responsive QA
 → TASK 14
 
-task deployment readiness
+task visual polish
 → TASK 15
+
+task deployment readiness
+→ TASK 16
 ```
 
 ---
@@ -370,6 +378,7 @@ navigation.ts
 skills.ts
 projects.ts
 experience.ts
+certificates.ts
 social-links.ts
 ```
 
@@ -415,6 +424,7 @@ Do not use Magic UI MCP for:
 - debugging unrelated code;
 - custom Skills implementation;
 - custom Experience implementation;
+- custom Certificates implementation;
 - arbitrary component discovery;
 - replacing existing custom components.
 
@@ -429,6 +439,7 @@ The following components must remain custom:
 ```text
 Interactive Tech Stack Grid
 Scroll Timeline
+Interactive Certificate Gallery
 ```
 
 Do not replace them with:
@@ -438,7 +449,7 @@ Aceternity UI
 React Bits
 21st.dev components
 Magic UI alternatives
-other third-party timeline/skills components
+other third-party timeline/skills/gallery components
 ```
 
 unless explicitly requested.
@@ -527,6 +538,48 @@ third-party timeline component
 
 ---
 
+# 15A. Certificates Rules
+
+Certificates implementation:
+
+```text
+Custom Interactive Certificate Gallery
+```
+
+Preferred architecture:
+
+```text
+Certificates.astro
++
+CertificateGallery.astro
++
+Astro + CSS/Tailwind
++
+minimal vanilla JavaScript enhancement
+```
+
+React is not required by default. Desktop uses a certificate list/selector with a large active preview. Hover, focus, and click must provide equivalent selection behavior. Mobile uses a readable stacked list and must not depend on hover.
+
+Certificate images may retain original color for document fidelity and should use `object-fit: contain`. Credential URLs must use semantic anchors, selector controls must be semantic, and nested interactive controls are not allowed.
+
+Certificate data is user-provided portfolio content. It must not be inferred from `content/CV.md`, skills, technologies, project dependencies, or repository names.
+
+Do not add:
+
+```text
+Magic UI certificate/gallery component
+Aceternity gallery
+React Bits gallery
+carousel or third-party gallery library
+autoplay carousel
+3D tilt or rotation
+glow or colorful border
+```
+
+Reduced motion uses an instant/simple state change without transform-heavy transitions or crossfade dependency.
+
+---
+
 # 16. Intro Rules
 
 Intro uses:
@@ -591,6 +644,8 @@ Do not introduce:
 - decorative border.
 
 Use semantic `<nav>`.
+
+The existing primary links remain About, Skills, Projects, Experience, and Contact. Whether Certificates is added to the Navbar is a **pending product decision**; do not change Navbar source automatically when implementing documentation or certificate data.
 
 ---
 
@@ -883,6 +938,7 @@ About        → Strong
 Skills       → Calm
 Projects     → Strong
 Experience   → Calm
+Certificates → Calm / Editorial
 Contact      → Strong
 Footer       → Minimal
 ```
@@ -906,6 +962,7 @@ Pixel Image        → static image
 Skills reveal      → static
 Border Beam        → static border
 Scroll Timeline    → static timeline
+Certificate Gallery → instant/simple state change
 Particles          → disabled
 Smooth scroll      → disabled
 ```
@@ -983,12 +1040,14 @@ Do not add heavy CAPTCHA unless there is a real spam problem.
 
 # 33. Asset Rules
 
-Profile and project images:
+Profile, project, and certificate images:
 
 - optimize;
 - provide dimensions;
 - provide alt text;
 - use responsive sizing.
+
+Certificate previews must preserve document fidelity, may retain original colors, and should use `object-fit: contain` instead of destructive cropping.
 
 Hero video:
 
@@ -1028,6 +1087,8 @@ client:visible
 optimized images
 small runtime islands
 ```
+
+Certificate content should render statically. Lazy-load below-the-fold certificate images where appropriate, and prefer minimal vanilla JavaScript over React hydration for gallery selection.
 
 ---
 
@@ -1122,6 +1183,8 @@ Examples:
 Hero.astro
 InteractiveTechStackGrid.astro
 ScrollTimeline.tsx
+Certificates.astro
+CertificateGallery.astro
 ContactForm.tsx
 ```
 
@@ -1131,6 +1194,7 @@ Data:
 skills.ts
 projects.ts
 experience.ts
+certificates.ts
 ```
 
 ---
@@ -1221,6 +1285,7 @@ If real portfolio content already exists:
 - preserve it unless the task requires editing it;
 - do not replace with generic placeholder copy;
 - do not invent experience details;
+- do not invent certificate titles, issuers, dates, credential URLs, IDs, or image paths;
 - do not invent project links;
 - do not invent social URLs.
 
@@ -1237,6 +1302,9 @@ Examples of forbidden substitutions:
 ```text
 Scroll Timeline
 → static cards because easier
+
+Interactive Certificate Gallery
+→ third-party carousel/gallery because easier
 
 Pixel Image
 → normal image because easier
@@ -1301,6 +1369,25 @@ Not allowed:
 - install Aceternity;
 - add glowing effects;
 - redesign Skills.
+
+---
+
+## When working on Certificates
+
+Allowed:
+
+- user-provided certificate data;
+- Certificates section;
+- Interactive Certificate Gallery;
+- certificate image assets supplied for the task;
+- minimal vanilla JavaScript selection enhancement.
+
+Not allowed:
+
+- infer certificates from CV or skills;
+- replace the custom gallery with a third-party component;
+- modify Experience or Contact internals;
+- add a carousel/gallery library.
 
 ---
 
@@ -1383,6 +1470,7 @@ typed local content
 minimal hydration
 custom Skills remains custom
 custom Experience remains custom
+custom Certificates remains custom
 Magic UI MCP is development-only
 contact secrets remain server-side
 ```
@@ -1440,6 +1528,13 @@ Structured website data should live under:
 `src/data/`
 
 and must remain consistent with `content/CV.md`.
+
+Exception for Certificates:
+
+- `content/CV.md` currently has no Certificates section and is not the source for certificate data.
+- Certificates are a separate user-provided portfolio content source.
+- Do not infer certificates from CV skills, technologies, education, experience, project dependencies, or repository names.
+- Store verified certificate data in `src/data/certificates.ts` only when supplied in a separate data/implementation task.
 
 ## Preview Server Rules
 

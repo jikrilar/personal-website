@@ -16,11 +16,4 @@ export const education: Education[] = [
     endYear: "2025",
     gpa: "3.53/4.00",
   },
-  {
-    id: "smk-negeri-2-kota-sukabumi",
-    institution: "SMK Negeri 2 Kota Sukabumi",
-    program: "Software Engineering",
-    startYear: "2019",
-    endYear: "2022",
-  },
 ];

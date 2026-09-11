@@ -4,12 +4,21 @@ export interface ContactPayload {
   message: string;
 }
 
+export interface ContactSubmissionPayload extends ContactPayload {
+  website: string;
+  submissionId: string;
+}
+
 export interface ContactResponse {
   success: boolean;
   message: string;
 }
 
 export type ContactFieldErrors = Partial<Record<keyof ContactPayload, string>>;
+
+export type ContactPayloadParseResult =
+  | { success: true; data: ContactSubmissionPayload }
+  | { success: false };
 
 export const CONTACT_LIMITS = {
   name: { min: 2, max: 120 },
@@ -18,6 +27,8 @@ export const CONTACT_LIMITS = {
 } as const;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SUBMISSION_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function normalizeContactPayload(payload: ContactPayload): ContactPayload {
   return {
@@ -52,4 +63,51 @@ export function validateContactPayload(payload: ContactPayload): ContactFieldErr
   }
 
   return errors;
+}
+
+export function isValidEmailAddress(value: string): boolean {
+  return value.length <= CONTACT_LIMITS.email.max && EMAIL_PATTERN.test(value);
+}
+
+export function parseContactSubmission(value: unknown): ContactPayloadParseResult {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { success: false };
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const website = candidate.website ?? "";
+  const submissionId = candidate.submissionId ?? crypto.randomUUID();
+
+  if (
+    typeof candidate.name !== "string" ||
+    typeof candidate.email !== "string" ||
+    typeof candidate.message !== "string" ||
+    typeof website !== "string" ||
+    typeof submissionId !== "string"
+  ) {
+    return { success: false };
+  }
+
+  const payload = normalizeContactPayload({
+    name: candidate.name,
+    email: candidate.email,
+    message: candidate.message,
+  });
+
+  if (
+    Object.keys(validateContactPayload(payload)).length > 0 ||
+    website.length > 200 ||
+    !SUBMISSION_ID_PATTERN.test(submissionId)
+  ) {
+    return { success: false };
+  }
+
+  return {
+    success: true,
+    data: {
+      ...payload,
+      website: website.trim(),
+      submissionId,
+    },
+  };
 }
