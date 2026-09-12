@@ -159,9 +159,9 @@ Magic UI tidak boleh menggantikan custom-owned components tanpa perubahan requir
 ┌───────────────────────────────────────────────────────────────┐
 │                    Contact Submission Layer                   │
 │                                                               │
-│   Astro server endpoint / serverless function                 │
-│                    OR                                         │
-│   external form/email provider                                │
+│   Client-side validation and submission                       │
+│                          ↓                                    │
+│   Web3Forms API                                               │
 └───────────────────────────┬───────────────────────────────────┘
                             │
                             ▼
@@ -671,9 +671,9 @@ Form harus berada pada layer dengan contrast yang jelas.
 
 # 14. Contact Form Submission Architecture
 
-Provider pengiriman pesan belum dikunci pada PRD.
+Provider pengiriman pesan yang aktif adalah **Web3Forms**.
 
-Agar UI tidak terikat provider tertentu, gunakan abstraction boundary.
+Contact tetap menggunakan abstraction boundary agar UI state dan provider request logic tidak tercampur:
 
 ```text
 ContactForm
@@ -682,13 +682,19 @@ ContactForm
 submitContactMessage()
     │
     ▼
-Contact Endpoint / Provider Adapter
+Web3Forms HTTPS API
     │
     ▼
-Email Service
+portfolio owner's email destination
 ```
 
+<<<<<<< Updated upstream:docs/ARCHITECTURE.md
 ## 14.1 Request Contract
+=======
+Submission berjalan dari browser. Custom Astro endpoint dan server-side email sending bukan lagi target architecture Contact.
+
+## 15.1 Request Contract
+>>>>>>> Stashed changes:ARCHITECTURE.md
 
 ```ts
 export interface ContactPayload {
@@ -698,7 +704,7 @@ export interface ContactPayload {
 }
 ```
 
-Response contract:
+Internal response contract yang dipetakan dari response Web3Forms:
 
 ```ts
 export interface ContactResponse {
@@ -707,23 +713,24 @@ export interface ContactResponse {
 }
 ```
 
+<<<<<<< Updated upstream:docs/ARCHITECTURE.md
 ## 14.2 Recommended API Contract
+=======
+## 15.2 Web3Forms Request Direction
+>>>>>>> Stashed changes:ARCHITECTURE.md
 
-```http
-POST /api/contact
-Content-Type: application/json
-```
-
-Body:
+Conceptual provider payload:
 
 ```json
 {
+  "access_key": "PUBLIC_WEB3FORMS_ACCESS_KEY",
   "name": "Visitor Name",
   "email": "visitor@example.com",
   "message": "Hello..."
 }
 ```
 
+<<<<<<< Updated upstream:docs/ARCHITECTURE.md
 Success:
 
 ```json
@@ -745,38 +752,61 @@ Validation error:
 ## 14.3 Hosting Consideration
 
 Jika deployment menggunakan platform dengan serverless/runtime support:
+=======
+Data flow:
+>>>>>>> Stashed changes:ARCHITECTURE.md
 
 ```text
-Astro API endpoint
-      ↓
-email provider
+validate input
+    ↓
+submit to Web3Forms
+    ↓
+validate provider response
+    ↓
+success or error UI state
 ```
 
-Jika deployment dipilih sebagai static-only hosting:
+Requirements:
+
+- `name`, `email`, dan `message` divalidasi sebelum request.
+- Email visitor dikirim sebagai contact/reply information.
+- Success hanya ditetapkan ketika response Web3Forms benar-benar menyatakan submission berhasil.
+- Network error, malformed provider response, atau provider rejection menghasilkan error state dan mempertahankan input.
+- Provider-specific request logic tetap berada di `submitContactMessage()` atau helper equivalent, bukan tersebar di presentation markup.
+
+## 15.3 Runtime and Hosting Responsibility
+
+Target deployment adalah Vercel menggunakan default `*.vercel.app` domain. Contact Form tidak membutuhkan custom sender domain atau custom Astro server runtime untuk mengirim pesan karena browser berkomunikasi langsung dengan Web3Forms.
+
+Target runtime:
 
 ```text
-Contact Form
-      ↓
-external form endpoint
+Astro static output on Vercel
+        +
+small Contact client runtime
+        +
+Web3Forms external API
 ```
 
-UI component tidak boleh bergantung langsung pada SDK provider.
+Migration implementation harus mengaudit existing `/api/contact`, custom email service, provider SDK, dan environment configuration. Hapus hanya setelah Web3Forms production submission terverifikasi dan komponen tersebut terbukti tidak dipakai fitur lain.
 
-Dengan cara ini provider dapat diganti tanpa redesign form.
+Astro/Vercel server adapter juga harus diaudit setelah migrasi. Dokumentasi ini tidak menyimpulkan adapter dapat langsung dihapus; removal hanya dilakukan jika tidak ada on-demand route atau fitur server lain yang masih membutuhkannya.
 
 ---
 
 # 15. Form Security
 
-Contact endpoint harus mempertimbangkan:
+Client-side Web3Forms integration harus mempertimbangkan:
 
-- server-side validation;
 - payload length limits;
 - input normalization;
-- rate limiting jika tersedia;
-- anti-spam mechanism jika dibutuhkan;
-- secret/API key hanya di environment variable;
-- tidak pernah mengekspos private provider key ke client.
+- validation sebelum submission;
+- provider-side validation dan rejection handling;
+- Web3Forms spam protection yang didukung provider;
+- access key hanya digunakan untuk scope form submission;
+- tidak pernah memasukkan access key aktual ke dokumentasi atau source yang di-hardcode.
+
+`PUBLIC_WEB3FORMS_ACCESS_KEY` digunakan dari browser dan karena itu bukan private server secret. Security tidak boleh bergantung pada menyembunyikan public access key; gunakan pembatasan dan spam protection yang tersedia pada Web3Forms.
 
 Optional anti-spam:
 
@@ -1082,11 +1112,12 @@ Possible example:
 
 ```text
 PUBLIC_SITE_URL=
-CONTACT_PROVIDER_API_KEY=
-CONTACT_TO_EMAIL=
+PUBLIC_WEB3FORMS_ACCESS_KEY=
 ```
 
-Private variables must never use a public-exposed prefix.
+Web3Forms access key menggunakan prefix `PUBLIC_` karena dibutuhkan oleh client-side submission. Jangan memasukkan value aktual ke documentation atau source; konfigurasikan melalui environment settings Vercel dan local environment yang tidak di-commit.
+
+Private variables lain tetap tidak boleh menggunakan public-exposed prefix.
 
 `.env` must not be committed.
 
@@ -1164,8 +1195,6 @@ without secret values.
 │  │
 │  ├─ pages/
 │  │  ├─ index.astro
-│  │  └─ api/
-│  │     └─ contact.ts
 │  │
 │  ├─ styles/
 │  │  └─ global.css
@@ -1203,8 +1232,9 @@ React integration
 Magic UI component dependencies
 Motion dependency when actually used
 Icon library if needed
-Contact provider SDK only on server if needed
 ```
+
+Web3Forms submission menggunakan browser `fetch` dan tidak membutuhkan email-provider SDK atau custom backend dependency sebagai target architecture.
 
 Rules:
 
@@ -1363,13 +1393,14 @@ Build Pipeline
       ▼
 Hosting Platform
       │
-      ├─ Static assets
-      └─ Serverless contact endpoint if required
+      └─ Vercel static assets (`*.vercel.app`)
+             │
+             └─ Browser submits Contact Form to Web3Forms
 ```
 
-Compatible deployment direction includes platforms capable of serving Astro static output and, if `/api/contact` is used, a compatible serverless/runtime adapter.
+Target production adalah Vercel dengan default `*.vercel.app` domain. Astro tetap static-first; Contact tidak membutuhkan custom serverless endpoint dalam target architecture.
 
-Exact hosting provider remains a deployment decision.
+Existing Vercel/Astro server adapter configuration harus diperiksa saat implementation cleanup. Adapter hanya boleh dihapus jika seluruh on-demand feature lain juga tidak membutuhkannya.
 
 ---
 
@@ -1405,6 +1436,8 @@ Test:
 - contact validation;
 - contact success;
 - contact failure.
+- Web3Forms provider rejection atau malformed response;
+- real production submission dari Vercel `*.vercel.app`.
 
 ## Accessibility
 
@@ -1501,16 +1534,23 @@ Run production Lighthouse and verify targets from PRD.
 
 ---
 
+<<<<<<< Updated upstream:docs/ARCHITECTURE.md
 ## ADR-007 — Contact Provider Is Abstracted
+=======
+## ADR-008 — Contact Uses Client-Side Web3Forms
+>>>>>>> Stashed changes:ARCHITECTURE.md
 
-**Decision:** Contact UI tidak terikat langsung pada satu provider.
+**Status:** Active; replaces the previous custom endpoint/email-service direction.
+
+**Decision:** Contact Form menggunakan client-side Web3Forms submission melalui `submitContactMessage()` sebagai provider boundary.
 
 **Reason:**
 
-- provider belum dikunci;
-- deployment target dapat berubah;
-- memudahkan migrasi;
-- credentials tetap server-side.
+- production menggunakan default Vercel `*.vercel.app` domain tanpa custom domain;
+- custom sender-domain requirement tidak sesuai kondisi deployment saat ini;
+- Web3Forms memungkinkan Contact Form bekerja tanpa custom Astro email backend;
+- Astro dapat kembali dipertahankan static-first;
+- UI dan provider request logic tetap terpisah agar tidak memerlukan redesign jika integration berubah.
 
 ---
 
@@ -1541,8 +1581,11 @@ Architecture dianggap diimplementasikan dengan benar apabila:
 - [ ] Scroll Timeline merupakan custom implementation.
 - [ ] Magic UI terbatas pada component yang ditentukan PRD.
 - [ ] Magic UI MCP tidak menjadi production dependency.
-- [ ] Contact Form tidak mengekspos secret pada client.
+- [ ] Contact Form menggunakan Web3Forms melalui client-side submission helper.
+- [ ] Web3Forms access key berasal dari `PUBLIC_WEB3FORMS_ACCESS_KEY` dan tidak di-hardcode.
+- [ ] Provider response diverifikasi sebelum menampilkan success.
 - [ ] Contact provider dapat diganti tanpa redesign UI.
+- [ ] Target production tetap Vercel `*.vercel.app` dengan Astro static-first.
 - [ ] Reduced-motion behavior tersedia.
 - [ ] Website tetap readable saat animation gagal.
 - [ ] Hero memiliki video fallback.
@@ -1569,7 +1612,7 @@ Selective Magic UI
         +
 Custom Skills / Experience
         +
-Serverless / Abstracted Contact Layer
+Client-Side Web3Forms Contact Integration
 ```
 
 Prinsip paling penting:

@@ -4,6 +4,13 @@ export interface ContactPayload {
   message: string;
 }
 
+<<<<<<< Updated upstream
+=======
+export interface ContactSubmissionPayload extends ContactPayload {
+  botcheck: boolean;
+}
+
+>>>>>>> Stashed changes
 export interface ContactResponse {
   success: boolean;
   message: string;

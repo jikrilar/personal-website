@@ -27,6 +27,10 @@ export default function ContactForm() {
   const [fieldErrors, setFieldErrors] = useState<ContactFieldErrors>({});
   const [status, setStatus] = useState<SubmissionStatus>("idle");
   const [statusMessage, setStatusMessage] = useState("");
+<<<<<<< Updated upstream
+=======
+  const [botcheck, setBotcheck] = useState(false);
+>>>>>>> Stashed changes
   const submittingRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -85,12 +89,23 @@ export default function ContactForm() {
     setStatusMessage("Sending your message...");
 
     try {
+<<<<<<< Updated upstream
+=======
+      const submission: ContactSubmissionPayload = {
+        ...payload,
+        botcheck,
+      };
+>>>>>>> Stashed changes
       const response = await submitContactMessage(
         payload,
         abortControllerRef.current.signal,
       );
 
       setValues(EMPTY_FORM);
+<<<<<<< Updated upstream
+=======
+      setBotcheck(false);
+>>>>>>> Stashed changes
       setStatus("success");
       setStatusMessage(response.message);
     } catch (error) {
@@ -112,10 +127,24 @@ export default function ContactForm() {
     <form
       className="contact-form"
       method="post"
-      action="/api/contact"
       onSubmit={handleSubmit}
       aria-busy={status === "loading"}
     >
+<<<<<<< Updated upstream
+=======
+      <div hidden aria-hidden="true">
+        <label htmlFor="contact-botcheck">Leave this field blank</label>
+        <input
+          id="contact-botcheck"
+          name="botcheck"
+          type="checkbox"
+          tabIndex={-1}
+          checked={botcheck}
+          onChange={(event) => setBotcheck(event.target.checked)}
+        />
+      </div>
+
+>>>>>>> Stashed changes
       <div className="contact-form__field">
         <label htmlFor="contact-name">Name</label>
         <input

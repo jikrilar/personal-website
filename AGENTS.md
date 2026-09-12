@@ -71,7 +71,13 @@ selective React hydration
 +
 typed local content
 +
+<<<<<<< Updated upstream
 custom Skills and Experience sections
+=======
+custom Skills, Experience, and Certificates sections
++
+client-side Web3Forms contact submission
+>>>>>>> Stashed changes
 ```
 
 Visual direction:
@@ -135,6 +141,7 @@ Contact
 → Magic UI Particles
 → contact form card
 → Magic UI Border Beam
+→ client-side Web3Forms submission
 
 Footer
 → custom minimal Astro implementation
@@ -725,6 +732,18 @@ Do not use Shine Border.
 
 Do not use colorful particle defaults.
 
+Contact submission provider:
+
+```text
+Web3Forms
+```
+
+Preserve the existing Contact UI and its validation/loading/success/error states. Use client-side submission through a focused helper, show success only after a confirmed provider success response, and retain form input on failure.
+
+Use `PUBLIC_WEB3FORMS_ACCESS_KEY` for the browser-facing access key. Do not hardcode an actual access key. Do not introduce another email/form provider without an explicit product decision.
+
+Prefer Astro static-first deployment and avoid backend/runtime complexity that is unnecessary for Web3Forms. Existing Contact backend, API route, provider dependency, and Astro/Vercel server adapter must be audited during implementation migration and removed only when confirmed unused.
+
 ---
 
 # 22. Shine Border Rule
@@ -942,7 +961,7 @@ Do not remove focus outlines without a visible replacement.
 
 # 31. Contact Form Architecture
 
-Contact UI must remain provider-agnostic.
+Contact UI must remain visually independent from provider logic.
 
 Preferred architecture:
 
@@ -951,22 +970,22 @@ ContactForm
     ↓
 submitContactMessage()
     ↓
-API endpoint / adapter
+Web3Forms API
     ↓
-email provider
+email destination
 ```
 
-Do not hardcode provider SDK calls directly into UI components.
+Use client-side submission and keep Web3Forms request/response mapping in a focused helper rather than presentation markup.
 
-Secrets must remain server-side.
+Success must reflect a real successful Web3Forms response. Network errors, provider rejection, and malformed responses must produce an error state without clearing visitor input.
 
-Never expose API keys to the browser.
+`PUBLIC_WEB3FORMS_ACCESS_KEY` is intentionally browser-visible and must be configured through environment variables without hardcoding its actual value.
 
 ---
 
 # 32. Contact Form Security
 
-Implement server-side validation.
+Validate and normalize Contact input before client-side submission, and rely on Web3Forms to validate or reject the provider request as well.
 
 Consider:
 
@@ -974,8 +993,10 @@ Consider:
 - email validation;
 - payload length limits;
 - basic normalization;
-- honeypot if needed;
-- rate limiting if supported.
+- accessible honeypot;
+- Web3Forms spam protection;
+- provider-side throttling/rate protection if supported;
+- safe provider-response handling.
 
 Do not add heavy CAPTCHA unless there is a real spam problem.
 
@@ -1043,6 +1064,8 @@ Does it duplicate an existing library?
 ```
 
 Do not add a new UI library to solve one small visual problem.
+
+Do not add another Contact email/form provider or custom email backend while Web3Forms is the active decision unless the user explicitly changes the architecture.
 
 Do not install:
 
@@ -1384,7 +1407,9 @@ minimal hydration
 custom Skills remains custom
 custom Experience remains custom
 Magic UI MCP is development-only
-contact secrets remain server-side
+Contact uses client-side Web3Forms through a focused helper
+no actual Web3Forms access key is hardcoded
+no unnecessary Contact backend or server runtime remains after verified migration
 ```
 
 ---
