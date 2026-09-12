@@ -11,9 +11,14 @@ export const socialLinks: SocialLink[] = [
     href: "tel:+6281996947657",
   },
   {
+    id: "portfolio",
+    label: "Portfolio",
+    href: "https://jikrilar.vercel.app/",
+  },
+  {
     id: "linkedin",
     label: "LinkedIn",
-    href: "https://linkedin.com/in/jikrilaryanda",
+    href: "https://www.linkedin.com/in/jikrilaryanda/",
   },
   {
     id: "github",
@@ -23,6 +28,6 @@ export const socialLinks: SocialLink[] = [
   {
     id: "email",
     label: "Email",
-    href: "mailto:jikrilar2903@gmail.com",
+    href: "mailto:m.jikrilaryanda@gmail.com",
   },
 ];

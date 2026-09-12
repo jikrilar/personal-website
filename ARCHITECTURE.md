@@ -2,9 +2,9 @@
 
 ## Personal Portfolio Website
 
-**Document Version:** 1.0  
+**Document Version:** 1.1
 **Status:** Ready for Development  
-**Related Document:** `prd.md` v1.1  
+**Related Document:** `prd.md` v1.2
 **Primary Stack:** Astro, TypeScript, Tailwind CSS  
 **UI / Motion:** Magic UI + selective React Islands  
 **Development Environment:** OpenCode + Magic UI MCP Server
@@ -21,7 +21,7 @@ Tujuan utama arsitektur adalah:
 - menggunakan JavaScript client-side hanya ketika benar-benar diperlukan;
 - mengintegrasikan Magic UI tanpa mengubah seluruh website menjadi React application;
 - memisahkan content, presentation, animation, dan external service;
-- menjaga custom Skills dan Experience tetap independen dari component library;
+- menjaga custom Skills, Experience, dan Certificates tetap independen dari component library;
 - membuat project mudah dipelihara dan dikembangkan;
 - mempertahankan accessibility, SEO, dan progressive enhancement.
 
@@ -121,6 +121,7 @@ Dibangun sendiri:
 
 - Interactive Tech Stack Grid;
 - Scroll Timeline;
+- Interactive Certificate Gallery;
 - Contact Form composition;
 - section wrappers;
 - responsive behavior.
@@ -142,6 +143,7 @@ Magic UI tidak boleh menggantikan custom-owned components tanpa perubahan requir
 │  ├─ Skills                                                    │
 │  ├─ Projects                                                  │
 │  ├─ Experience                                                │
+│  ├─ Certificates                                              │
 │  ├─ Contact                                                   │
 │  └─ Footer                                                    │
 │                                                               │
@@ -195,6 +197,7 @@ import About from "@/components/sections/About.astro";
 import Skills from "@/components/sections/Skills.astro";
 import Projects from "@/components/sections/Projects.astro";
 import Experience from "@/components/sections/Experience.astro";
+import Certificates from "@/components/sections/Certificates.astro";
 import Contact from "@/components/sections/Contact.astro";
 import Footer from "@/components/layout/Footer.astro";
 ---
@@ -207,6 +210,7 @@ import Footer from "@/components/layout/Footer.astro";
     <Skills />
     <Projects />
     <Experience />
+    <Certificates />
     <Contact />
   </main>
   <Footer />
@@ -236,6 +240,7 @@ Tidak diperlukan client-side fetch untuk:
 - skills;
 - projects;
 - experience;
+- certificates;
 - social links;
 - navigation.
 
@@ -262,6 +267,7 @@ Karena itu, setiap component harus menggunakan hydration seminimal mungkin.
 | Bento Grid | Astro/React | No hydration by default |
 | Border Beam | React/CSS | No hydration unless implementation requires runtime |
 | Scroll Timeline | React island or lightweight JS | `client:visible` |
+| Interactive Certificate Gallery | Astro/CSS + minimal vanilla JS | No React hydration by default |
 | Particles | React / Magic UI | `client:visible` |
 | Contact Form | React island or Astro + JS | `client:visible` |
 | Footer | Astro | No hydration |
@@ -360,6 +366,8 @@ Anchor target:
 #experience
 #contact
 ```
+
+Keputusan untuk menambahkan `#certificates` ke primary Navbar masih **pending**. Certificates tetap menjadi section resmi di page composition, tetapi documentation update ini tidak mengubah daftar navigation target yang sudah ada.
 
 Smooth scrolling dikontrol melalui CSS dan harus dihormati oleh reduced-motion preference.
 
@@ -651,9 +659,102 @@ Semua content tetap terlihat.
 
 ---
 
-# 13. Contact Section Architecture
+# 13. Certificates Architecture
 
-## 13.1 Composition
+## 13.1 Responsibility and Component Ownership
+
+Certificates menggunakan custom Astro implementation:
+
+```text
+certificate data
+      ↓
+Certificates.astro
+      ↓
+CertificateGallery.astro
+      ↓
+Astro + CSS/Tailwind
+      ↓
+minimal vanilla JavaScript enhancement
+```
+
+`Interactive Certificate Gallery` tidak menggunakan Magic UI, Aceternity, React Bits, carousel library, atau third-party gallery component. React island tidak diperlukan secara default dan hanya dapat dipertimbangkan jika behavior final benar-benar lebih kompleks daripada vanilla enhancement.
+
+## 13.2 Static-First Rendering
+
+Certificate data dirender menjadi semantic HTML saat build. Tanpa JavaScript, visitor tetap dapat membaca title, issuer, issued date, melihat certificate image, dan membuka credential link jika tersedia.
+
+```text
+typed certificate data
+      ↓
+semantic static content
+      ↓
+responsive gallery layout
+      ↓
+optional selection enhancement
+```
+
+Desktop menggunakan certificate list/selector dan large active preview. Certificate pertama dapat menjadi default active item. Hover, focus, dan click mengubah selection melalui enhancement yang sama; hover tidak menjadi satu-satunya mechanism.
+
+Mobile menggunakan stacked readable list sehingga preview image dan credential link langsung discoverable tanpa selection atau hover.
+
+## 13.3 Data Model and Source
+
+Intended local data source:
+
+```text
+src/data/certificates.ts
+```
+
+Conceptual model:
+
+```ts
+export interface Certificate {
+  id: string;
+  title: string;
+  issuer: string;
+  issuedAt: string;
+  image: string;
+  credentialUrl?: string;
+  credentialId?: string;
+  skills?: string[];
+  order: number;
+}
+```
+
+Schema final dapat mengikuti existing data conventions ketika task data dijalankan. `content/CV.md` tidak memiliki Certificates section: CV tetap menjadi factual source untuk CV-derived content, sedangkan Certificates adalah user-provided portfolio content dan tidak boleh diinfer dari CV, skills, atau technologies.
+
+## 13.4 Interaction, Accessibility, and Reduced Motion
+
+- Selector menggunakan semantic interactive element.
+- Credential URL menggunakan semantic `<a>` dan tidak dinest di dalam `<button>`.
+- Keyboard focus dan click/tap dapat mengganti active certificate.
+- Preview image memiliki meaningful `alt` dan menggunakan `object-fit: contain` untuk menjaga fidelity dokumen.
+- Enhancement boleh menggunakan active emphasis, subtle indicator, small translation, crossfade, dan very small scale transition.
+- Reduced motion menggunakan instant/simple state change tanpa transform-heavy transition atau crossfade dependency.
+- Event listener harus scoped, tidak diduplikasi, dan memiliki cleanup bila lifecycle implementation memerlukannya.
+
+## 13.5 Intended File Responsibility
+
+Struktur berikut bersifat intended architecture dan belum dibuat oleh documentation task:
+
+```text
+src/
+├── components/
+│   ├── sections/
+│   │   └── Certificates.astro
+│   └── custom/
+│       └── CertificateGallery.astro
+├── data/
+│   └── certificates.ts
+└── assets/
+    └── certificates/
+```
+
+---
+
+# 14. Contact Section Architecture
+
+## 14.1 Composition
 
 ```text
 Contact.astro
@@ -669,7 +770,7 @@ Form harus berada pada layer dengan contrast yang jelas.
 
 ---
 
-# 14. Contact Form Submission Architecture
+# 15. Contact Form Submission Architecture
 
 Provider pengiriman pesan yang aktif adalah **Web3Forms**.
 
@@ -688,13 +789,9 @@ Web3Forms HTTPS API
 portfolio owner's email destination
 ```
 
-<<<<<<< Updated upstream:docs/ARCHITECTURE.md
-## 14.1 Request Contract
-=======
 Submission berjalan dari browser. Custom Astro endpoint dan server-side email sending bukan lagi target architecture Contact.
 
 ## 15.1 Request Contract
->>>>>>> Stashed changes:ARCHITECTURE.md
 
 ```ts
 export interface ContactPayload {
@@ -713,11 +810,7 @@ export interface ContactResponse {
 }
 ```
 
-<<<<<<< Updated upstream:docs/ARCHITECTURE.md
-## 14.2 Recommended API Contract
-=======
 ## 15.2 Web3Forms Request Direction
->>>>>>> Stashed changes:ARCHITECTURE.md
 
 Conceptual provider payload:
 
@@ -730,7 +823,6 @@ Conceptual provider payload:
 }
 ```
 
-<<<<<<< Updated upstream:docs/ARCHITECTURE.md
 Success:
 
 ```json
@@ -749,12 +841,11 @@ Validation error:
 }
 ```
 
-## 14.3 Hosting Consideration
+## 15.3 Hosting Consideration
 
 Jika deployment menggunakan platform dengan serverless/runtime support:
-=======
+
 Data flow:
->>>>>>> Stashed changes:ARCHITECTURE.md
 
 ```text
 validate input
@@ -794,7 +885,7 @@ Astro/Vercel server adapter juga harus diaudit setelah migrasi. Dokumentasi ini 
 
 ---
 
-# 15. Form Security
+# 16. Form Security
 
 Client-side Web3Forms integration harus mempertimbangkan:
 
@@ -818,7 +909,7 @@ Jangan menambahkan CAPTCHA berat pada versi awal tanpa kebutuhan.
 
 ---
 
-# 16. Data Architecture
+# 17. Data Architecture
 
 Portfolio content disimpan sebagai local typed data.
 
@@ -829,6 +920,7 @@ src/data/
 ├─ skills.ts
 ├─ projects.ts
 ├─ experience.ts
+├─ certificates.ts
 ├─ navigation.ts
 └─ social-links.ts
 ```
@@ -841,17 +933,20 @@ Benefits:
 - reusable;
 - clear separation between content and UI.
 
+`content/CV.md` tetap menjadi factual reference untuk CV-derived content. Certificate data merupakan source baru yang diberikan user, disimpan di `src/data/certificates.ts`, dan tidak boleh diinfer dari CV, skills, technologies, atau dependency project.
+
 ---
 
-# 17. Asset Architecture
+# 18. Asset Architecture
 
 Recommended structure:
 
 ```text
 src/assets/
-├─ images/
-│  ├─ profile/
-│  └─ projects/
+├─ certificates/
+└─ images/
+   ├─ profile/
+   └─ projects/
 │
 public/
 ├─ media/
@@ -859,7 +954,7 @@ public/
 └─ icons/
 ```
 
-## 17.1 Images
+## 18.1 Images
 
 Use Astro asset optimization when possible.
 
@@ -870,7 +965,9 @@ Project screenshots and profile images should define:
 - responsive sizes;
 - optimized format.
 
-## 17.2 Video
+Certificate images disimpan sebagai original document representations, memiliki meaningful alt text, menggunakan responsive dimensions, dan ditampilkan dengan `object-fit: contain` agar tidak terpotong. Warna asli certificate boleh dipertahankan untuk menjaga fidelity dokumen.
+
+## 18.2 Video
 
 Hero video should prioritize:
 
@@ -882,9 +979,9 @@ Hero video should prioritize:
 
 ---
 
-# 18. Styling Architecture
+# 19. Styling Architecture
 
-## 18.1 Tailwind
+## 19.1 Tailwind
 
 Tailwind digunakan untuk:
 
@@ -897,7 +994,7 @@ Tailwind digunakan untuk:
 
 Avoid arbitrary one-off values when a reusable design token is more appropriate.
 
-## 18.2 Global Styles
+## 19.2 Global Styles
 
 `src/styles/global.css` digunakan untuk:
 
@@ -931,7 +1028,7 @@ Exact values ditentukan pada Design System.
 
 ---
 
-# 19. Animation Architecture
+# 20. Animation Architecture
 
 Animation dibagi menjadi tiga level.
 
@@ -945,6 +1042,8 @@ Untuk:
 - opacity;
 - small scale;
 - button transition.
+- certificate selector emphasis dan indicator.
+- certificate preview crossfade bila enhancement digunakan.
 
 ## Level 2 — Viewport Animation
 
@@ -969,7 +1068,7 @@ Level 3 harus dibatasi karena memiliki runtime cost terbesar.
 
 ---
 
-# 20. Accessibility Architecture
+# 21. Accessibility Architecture
 
 Semantic structure:
 
@@ -983,6 +1082,7 @@ Semantic structure:
   <section id="skills">
   <section id="projects">
   <section id="experience">
+  <section id="certificates">
   <section id="contact">
 </main>
 
@@ -1009,7 +1109,7 @@ when they contain no semantic content.
 
 ---
 
-# 21. Reduced Motion Architecture
+# 22. Reduced Motion Architecture
 
 Global detection:
 
@@ -1032,12 +1132,13 @@ Expected behavior:
 | Tech Grid | No stagger required |
 | Border Beam | Static border |
 | Scroll Timeline | Static timeline |
+| Certificate Gallery | Instant/simple selection; no transform-heavy transition |
 | Particles | Disabled |
 | Smooth scroll | Disabled |
 
 ---
 
-# 22. SEO Architecture
+# 23. SEO Architecture
 
 SEO dikelola pada layout level.
 
@@ -1064,7 +1165,7 @@ social preview image
 
 ---
 
-# 23. Error and Fallback Architecture
+# 24. Error and Fallback Architecture
 
 ## Hero Video Failure
 
@@ -1104,7 +1205,7 @@ retain form content
 
 ---
 
-# 24. Environment Configuration
+# 25. Environment Configuration
 
 Only values that differ by environment belong in environment variables.
 
@@ -1131,7 +1232,7 @@ without secret values.
 
 ---
 
-# 25. Suggested Directory Structure
+# 26. Suggested Directory Structure
 
 ```text
 /
@@ -1143,6 +1244,7 @@ without secret values.
 │
 ├─ src/
 │  ├─ assets/
+│  │  ├─ certificates/
 │  │  └─ images/
 │  │     ├─ profile/
 │  │     └─ projects/
@@ -1158,12 +1260,14 @@ without secret values.
 │  │  │  ├─ Skills.astro
 │  │  │  ├─ Projects.astro
 │  │  │  ├─ Experience.astro
+│  │  │  ├─ Certificates.astro
 │  │  │  └─ Contact.astro
 │  │  │
 │  │  ├─ custom/
 │  │  │  ├─ InteractiveTechStackGrid.astro
 │  │  │  ├─ ScrollTimeline.tsx
-│  │  │  └─ ScrollTimelineItem.astro
+│  │  │  ├─ ScrollTimelineItem.astro
+│  │  │  └─ CertificateGallery.astro
 │  │  │
 │  │  ├─ magic-ui/
 │  │  │  ├─ MorphingText.tsx
@@ -1182,6 +1286,7 @@ without secret values.
 │  │  ├─ skills.ts
 │  │  ├─ projects.ts
 │  │  ├─ experience.ts
+│  │  ├─ certificates.ts
 │  │  └─ social-links.ts
 │  │
 │  ├─ layouts/
@@ -1215,7 +1320,7 @@ Arsitektur harus menghindari folder abstraksi yang tidak memberi manfaat nyata.
 
 ---
 
-# 26. Dependency Strategy
+# 27. Dependency Strategy
 
 ## Required
 
@@ -1240,12 +1345,12 @@ Rules:
 
 - install dependency only when used;
 - avoid multiple animation libraries with overlapping responsibility;
-- do not install an additional UI framework solely for Skills or Experience;
+- do not install an additional UI framework solely for Skills, Experience, or Certificates;
 - periodically remove unused dependencies.
 
 ---
 
-# 27. Magic UI MCP Architecture
+# 28. Magic UI MCP Architecture
 
 Magic UI MCP adalah **development-time integration**.
 
@@ -1286,13 +1391,14 @@ MCP tidak digunakan untuk:
 
 - Interactive Tech Stack Grid;
 - Scroll Timeline;
+- Interactive Certificate Gallery;
 - generic debugging;
 - unrelated refactoring;
 - arbitrary component discovery tanpa requirement.
 
 ---
 
-# 28. OpenCode Development Boundaries
+# 29. OpenCode Development Boundaries
 
 Agent development harus mengikuti source-of-truth berikut:
 
@@ -1325,6 +1431,10 @@ Experience
 → custom Scroll Timeline
 → not Aceternity / external timeline
 
+Certificates
+→ custom Interactive Certificate Gallery
+→ not Magic UI / Aceternity / React Bits / carousel or gallery library
+
 Contact
 → Border Beam
 → not Shine Border
@@ -1332,7 +1442,7 @@ Contact
 
 ---
 
-# 29. Performance Architecture
+# 30. Performance Architecture
 
 ## Critical Path
 
@@ -1359,6 +1469,7 @@ Components seperti:
 - Pixel Image;
 - Skills enhancement;
 - Scroll Timeline;
+- Certificate Gallery enhancement;
 - Particles;
 - Contact Form runtime;
 
@@ -1376,7 +1487,7 @@ sebaiknya tidak mengambil prioritas hydration yang sama dengan Intro/Hero.
 
 ---
 
-# 30. Deployment Architecture
+# 31. Deployment Architecture
 
 Recommended production model:
 
@@ -1404,7 +1515,7 @@ Existing Vercel/Astro server adapter configuration harus diperiksa saat implemen
 
 ---
 
-# 31. Testing Strategy
+# 32. Testing Strategy
 
 ## Static / Build
 
@@ -1433,6 +1544,8 @@ Test:
 - project links;
 - tech-grid interaction;
 - timeline progress;
+- certificate hover/focus/click parity;
+- certificate preview and credential links;
 - contact validation;
 - contact success;
 - contact failure.
@@ -1456,7 +1569,7 @@ Run production Lighthouse and verify targets from PRD.
 
 ---
 
-# 32. Architecture Decision Records
+# 33. Architecture Decision Records
 
 ## ADR-001 — Astro as Application Shell
 
@@ -1509,7 +1622,20 @@ Run production Lighthouse and verify targets from PRD.
 
 ---
 
-## ADR-005 — Border Beam Replaces Shine Border
+## ADR-005 — Certificates Is Custom and Astro-First
+
+**Decision:** Certificates menggunakan custom Interactive Certificate Gallery dengan Astro, CSS/Tailwind, dan minimal vanilla JavaScript enhancement.
+
+**Reason:**
+
+- desktop master-detail dan mobile stacked layout dapat dirender static-first;
+- hover, focus, dan click parity tidak membutuhkan React secara default;
+- menjaga component ownership dan visual direction tanpa third-party gallery library;
+- certificate content tetap accessible jika JavaScript gagal.
+
+---
+
+## ADR-006 — Border Beam Replaces Shine Border
 
 **Decision:** Contact Form menggunakan Border Beam.
 
@@ -1521,24 +1647,21 @@ Run production Lighthouse and verify targets from PRD.
 
 ---
 
-## ADR-006 — Portfolio Data Is Local
+## ADR-007 — Portfolio Data Is Local
 
-**Decision:** Skills, projects, dan experience menggunakan local typed data.
+**Decision:** Skills, projects, experience, dan certificates menggunakan local typed data.
 
 **Reason:**
 
 - tidak membutuhkan CMS/database pada MVP;
 - build-time rendering lebih cepat;
 - mudah dipelihara;
-- tidak menambah network dependency.
+- tidak menambah network dependency;
+- certificate data harus diberikan user dan tidak boleh diinfer dari `content/CV.md`.
 
 ---
 
-<<<<<<< Updated upstream:docs/ARCHITECTURE.md
-## ADR-007 — Contact Provider Is Abstracted
-=======
 ## ADR-008 — Contact Uses Client-Side Web3Forms
->>>>>>> Stashed changes:ARCHITECTURE.md
 
 **Status:** Active; replaces the previous custom endpoint/email-service direction.
 
@@ -1554,7 +1677,7 @@ Run production Lighthouse and verify targets from PRD.
 
 ---
 
-## ADR-008 — Magic UI MCP Is Development Only
+## ADR-009 — Magic UI MCP Is Development Only
 
 **Decision:** Magic UI MCP hanya digunakan oleh OpenCode saat development.
 
@@ -1566,7 +1689,7 @@ Run production Lighthouse and verify targets from PRD.
 
 ---
 
-# 33. Architecture Acceptance Criteria
+# 34. Architecture Acceptance Criteria
 
 Architecture dianggap diimplementasikan dengan benar apabila:
 
@@ -1577,8 +1700,10 @@ Architecture dianggap diimplementasikan dengan benar apabila:
 - [ ] Skills berasal dari local typed data.
 - [ ] Projects berasal dari local typed data.
 - [ ] Experience berasal dari local typed data.
+- [ ] Certificates berasal dari local typed user-provided data, bukan inferensi dari CV.
 - [ ] Interactive Tech Stack Grid merupakan custom implementation.
 - [ ] Scroll Timeline merupakan custom implementation.
+- [ ] Interactive Certificate Gallery merupakan custom Astro implementation dengan static fallback.
 - [ ] Magic UI terbatas pada component yang ditentukan PRD.
 - [ ] Magic UI MCP tidak menjadi production dependency.
 - [ ] Contact Form menggunakan Web3Forms melalui client-side submission helper.
@@ -1595,7 +1720,7 @@ Architecture dianggap diimplementasikan dengan benar apabila:
 
 ---
 
-# 34. Summary
+# 35. Summary
 
 Arsitektur website menggunakan pendekatan:
 
@@ -1610,7 +1735,7 @@ Selective React Islands
         +
 Selective Magic UI
         +
-Custom Skills / Experience
+Custom Skills / Experience / Certificates
         +
 Client-Side Web3Forms Contact Integration
 ```

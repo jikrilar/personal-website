@@ -2,7 +2,7 @@
 
 ## Personal Portfolio Website
 
-**Document Version:** 1.1  
+**Document Version:** 1.2
 **Status:** Ready for Design & Development  
 **Product Type:** Personal Portfolio Website  
 **Primary Stack:** Astro, Tailwind CSS, Magic UI  
@@ -12,11 +12,11 @@
 
 ## 1. Product Overview
 
-Personal Portfolio Website adalah website pribadi yang berfungsi sebagai representasi profesional, teknis, dan visual dari pemilik portfolio. Website akan menampilkan identitas, ringkasan profil, technical skills, project, experience, serta sarana bagi pengunjung untuk mengirim pesan.
+Personal Portfolio Website adalah website pribadi yang berfungsi sebagai representasi profesional, teknis, dan visual dari pemilik portfolio. Website akan menampilkan identitas, ringkasan profil, technical skills, project, experience, certificate/credential profesional, serta sarana bagi pengunjung untuk mengirim pesan.
 
 Website dirancang dengan pendekatan visual yang clean, modern, monokrom, dan interaktif. Animasi digunakan sebagai bagian dari pengalaman pengguna, bukan sekadar dekorasi. Setiap section memiliki karakter visual yang berbeda, tetapi tetap mengikuti satu design language yang konsisten.
 
-Astro digunakan sebagai fondasi utama agar website tetap cepat dan ringan. Tailwind CSS digunakan untuk styling dan responsive layout. Magic UI digunakan secara selektif untuk komponen visual dan motion. Komponen custom akan digunakan untuk bagian Skills dan Experience agar desain tidak terasa seperti gabungan banyak component library.
+Astro digunakan sebagai fondasi utama agar website tetap cepat dan ringan. Tailwind CSS digunakan untuk styling dan responsive layout. Magic UI digunakan secara selektif untuk komponen visual dan motion. Komponen custom akan digunakan untuk bagian Skills, Experience, dan Certificates agar desain tidak terasa seperti gabungan banyak component library.
 
 ---
 
@@ -41,13 +41,14 @@ Portfolio juga harus berfungsi sebagai bukti kemampuan membangun website modern 
 - Menampilkan skill teknis dalam visual yang clean dan interaktif.
 - Menampilkan project utama serta project lainnya dengan hierarchy yang jelas.
 - Menampilkan pengalaman profesional melalui timeline berbasis scroll.
+- Menampilkan certificate atau credential profesional yang relevan secara cepat dan dapat diverifikasi.
 - Menyediakan contact form yang mudah digunakan.
 - Menghasilkan pengalaman portfolio yang memorable tanpa mengorbankan readability dan performance.
 - Menunjukkan kemampuan frontend melalui pemanfaatan motion, interaction, component composition, dan responsive design.
 
 ### 3.2 Secondary Goals
 
-- Memiliki struktur yang mudah dikembangkan ketika project atau experience baru ditambahkan.
+- Memiliki struktur yang mudah dikembangkan ketika project, experience, atau certificate baru ditambahkan.
 - Memiliki performa tinggi pada desktop maupun mobile.
 - Memiliki SEO dasar yang baik agar halaman dapat ditemukan dan dibagikan dengan baik.
 - Menjaga penggunaan JavaScript client-side seminimal mungkin melalui Astro Islands.
@@ -124,8 +125,9 @@ Website harus memiliki pergantian antara section visual yang kuat dan section ya
 4. Skills — clean + interactive.
 5. Projects — strong visual.
 6. Experience — clean + scroll motion.
-7. Send Message — strong visual.
-8. Footer — minimal.
+7. Certificates — clean + interactive.
+8. Send Message — strong visual.
+9. Footer — minimal.
 
 ---
 
@@ -161,6 +163,7 @@ Custom implementation digunakan untuk:
 
 - Interactive Tech Stack Grid.
 - Scroll Timeline.
+- Interactive Certificate Gallery.
 
 Tujuannya adalah menghindari ketergantungan berlebihan terhadap component library dan menjaga design language tetap konsisten.
 
@@ -205,6 +208,7 @@ Aturan penggunaan:
 - Jangan menggunakan Magic UI MCP untuk general coding task yang tidak berhubungan dengan Magic UI.
 - Jangan menggunakan Magic UI MCP untuk mengganti custom Interactive Tech Stack Grid.
 - Jangan menggunakan Magic UI MCP untuk mengganti custom Scroll Timeline.
+- Jangan menggunakan Magic UI MCP untuk mengganti custom Interactive Certificate Gallery.
 - Komponen dari Magic UI tetap harus disesuaikan dengan design direction monochrome website.
 - Hindari menambahkan komponen Magic UI baru di luar daftar PRD tanpa kebutuhan produk yang jelas.
 - MCP tidak mengubah arsitektur aplikasi; komponen React tetap diintegrasikan melalui Astro React Islands hanya jika hydration memang diperlukan.
@@ -224,7 +228,7 @@ Aturan penggunaan:
 Website menggunakan struktur single-page dengan urutan berikut:
 
 ```text
-Loading / Intro Overlay
+Intro / Loading Visual
         ↓
 Navbar
         ↓
@@ -237,6 +241,8 @@ Skills
 Projects
         ↓
 Experience
+        ↓
+Certificates
         ↓
 Send Message
         ↓
@@ -325,6 +331,8 @@ Minimum:
 - Projects
 - Experience
 - Contact
+
+Keputusan apakah Certificates menjadi primary navigation item masih **pending**. Penambahan section ini tidak secara otomatis mengubah navigation items yang sudah dikunci.
 
 ### Behavior
 
@@ -606,7 +614,84 @@ Remaining rail    │
 
 ---
 
-## 9.8 Send Message Section
+## 9.8 Certificates Section
+
+### Purpose
+
+Menampilkan certificate atau credential profesional agar recruiter dan visitor dapat menilai professional learning yang relevan serta membuka credential eksternal ketika tersedia.
+
+Certificates ditempatkan setelah Experience dan sebelum Contact untuk membentuk product flow:
+
+```text
+Projects      → what I built
+Experience    → where I worked
+Certificates  → credentials / professional learning
+Contact       → conversion / communication
+```
+
+### Component
+
+Custom **Interactive Certificate Gallery**.
+
+Certificate Gallery bukan Magic UI component dan tidak boleh diganti dengan Aceternity, React Bits, carousel library, atau third-party gallery component.
+
+### Desktop Concept
+
+```text
+Certificate list / selector
+        +
+large active certificate preview
+```
+
+- Certificate pertama dapat menjadi active/default item.
+- Active preview dapat berubah melalui hover, keyboard focus, dan click.
+- Hover tidak boleh menjadi satu-satunya mechanism.
+- Selector dan credential link harus menggunakan semantic interactive elements tanpa nested interactive controls.
+
+### Mobile Concept
+
+Certificates berubah menjadi readable vertical list. Setiap entry menampilkan title, issuer/date, certificate preview, dan credential link jika tersedia. Image dan link harus langsung discoverable tanpa hover.
+
+### Visual and Motion
+
+- Surrounding UI tetap monochrome, clean, editorial, dan menggunakan generous whitespace.
+- Certificate image boleh mempertahankan warna asli agar fidelity dokumen tidak berkurang.
+- Preview menggunakan `object-fit: contain`; certificate tidak boleh di-crop sebagai decorative image.
+- Interaction menggunakan active-item emphasis, small horizontal movement, subtle indicator, preview crossfade, atau very small scale transition.
+- Durasi mengikuti motion system, sekitar 200–350ms bila sesuai token.
+- Tidak menggunakan tilt, 3D rotation, glow, colorful border, autoplay carousel, continuous marquee, atau heavy parallax.
+
+### Accessibility and Data
+
+- Keyboard focus dan click/tap harus dapat memilih active certificate.
+- Focus-visible harus jelas.
+- Credential URL menggunakan semantic `<a>`.
+- Preview image memiliki meaningful `alt`.
+- Reduced motion menggunakan instant/simple state change tanpa transform-heavy transition atau ketergantungan pada crossfade.
+- Content bersifat data-driven, responsive, static-first, dan progressively enhanced.
+- CV tetap menjadi factual reference untuk content yang berasal dari CV, tetapi certificate data merupakan user-provided portfolio content dan **tidak boleh diinfer dari CV, skills, atau technologies**.
+
+### Conceptual Data Model
+
+```ts
+interface Certificate {
+  id: string;
+  title: string;
+  issuer: string;
+  issuedAt: string;
+  image: string;
+  credentialUrl?: string;
+  credentialId?: string;
+  skills?: string[];
+  order: number;
+}
+```
+
+Schema final dapat disesuaikan dengan existing data conventions pada task data/implementation terpisah. Tidak ada certificate factual yang ditambahkan oleh task dokumentasi ini.
+
+---
+
+## 9.9 Send Message Section
 
 ### Purpose
 
@@ -697,7 +782,7 @@ Beam harus dibuat neutral/monochrome.
 
 ---
 
-## 9.9 Footer
+## 9.10 Footer
 
 ### Purpose
 
@@ -766,6 +851,23 @@ Key responsibilities or achievements
 
 Description harus cukup singkat agar timeline tidak berubah menjadi CV panjang.
 
+## 10.5 Certificates
+
+Setiap certificate menggunakan typed local data dari `src/data/certificates.ts` pada task implementation terpisah. Minimum content:
+
+```text
+Title
+Issuer
+Issued date
+Certificate image
+Credential URL (optional)
+Credential ID (optional)
+Related skills (optional)
+Order
+```
+
+Certificate content harus diberikan oleh user atau source credential yang dapat diverifikasi. `content/CV.md` tidak memiliki Certificates section dan tidak boleh digunakan untuk menginfer certificate.
+
 ---
 
 # 11. Responsive Requirements
@@ -784,6 +886,7 @@ Website harus mendukung minimal:
 - Skills grid menyesuaikan jumlah kolom.
 - Bento Grid berubah menjadi layout yang tetap memiliki hierarchy tetapi tidak memaksa grid desktop.
 - Timeline menjadi single-column.
+- Certificate Gallery berubah dari desktop master-detail menjadi stacked readable list.
 - Particles dapat dikurangi density-nya.
 - Hero Video Text harus tetap terbaca.
 - Navbar berubah ke layout mobile yang sesuai.
@@ -838,6 +941,7 @@ Untuk reduced motion:
 
 - Morphing dapat disederhanakan.
 - Timeline scroll animation dapat menjadi static state.
+- Certificate preview selection menggunakan instant/simple state change dan tetap usable tanpa animation.
 - Parallax/motion besar harus dikurangi atau dinonaktifkan.
 - Informasi tidak boleh hilang hanya karena animation dimatikan.
 
@@ -923,12 +1027,14 @@ src/
 │   │   ├── Skills.astro
 │   │   ├── Projects.astro
 │   │   ├── Experience.astro
+│   │   ├── Certificates.astro
 │   │   └── Contact.astro
 │   │
 │   ├── ui/
 │   │   ├── IntroLoader.*
 │   │   ├── InteractiveTechGrid.*
 │   │   ├── ScrollTimeline.*
+│   │   ├── CertificateGallery.*
 │   │   └── magic-ui/
 │   │
 │   └── forms/
@@ -937,7 +1043,8 @@ src/
 ├── data/
 │   ├── skills.*
 │   ├── projects.*
-│   └── experience.*
+│   ├── experience.*
+│   └── certificates.*
 │
 ├── layouts/
 │   └── Layout.astro
@@ -949,6 +1056,7 @@ src/
 │   └── global.css
 │
 └── assets/
+    ├── certificates/
     ├── images/
     └── video/
 ```
@@ -959,7 +1067,7 @@ src/
 
 # 18. Data-Driven Content
 
-Skills, projects, dan experience sebaiknya tidak di-hardcode langsung di markup jika jumlah item dapat bertambah.
+Skills, projects, experience, dan certificates sebaiknya tidak di-hardcode langsung di markup jika jumlah item dapat bertambah.
 
 Contoh konsep:
 
@@ -967,7 +1075,10 @@ Contoh konsep:
 skills = []
 projects = []
 experience = []
+certificates = []
 ```
+
+CV tetap menjadi factual reference untuk CV-derived content. Certificates memiliki source baru berupa user-provided portfolio content dan bukan CV-derived content.
 
 Keuntungan:
 
@@ -988,6 +1099,7 @@ Website versi pertama dianggap memenuhi PRD jika:
 - [ ] Magic UI hanya digunakan pada komponen yang direncanakan.
 - [ ] Interactive Tech Stack Grid tetap merupakan custom component.
 - [ ] Scroll Timeline tetap merupakan custom component.
+- [ ] Interactive Certificate Gallery tetap merupakan custom component.
 - [ ] Tidak ada horizontal overflow pada responsive viewport normal.
 - [ ] Design language konsisten dan monochrome dominant.
 
@@ -1042,6 +1154,15 @@ Website versi pertama dianggap memenuhi PRD jika:
 - [ ] Scroll progress line bekerja.
 - [ ] Active marker berubah sesuai scroll.
 - [ ] Mobile menggunakan simplified timeline.
+
+### Certificates
+
+- [ ] Menggunakan custom Interactive Certificate Gallery.
+- [ ] Desktop menggunakan certificate selector dan large active preview.
+- [ ] Hover, focus, dan click/tap memiliki equivalent selection behavior.
+- [ ] Mobile menggunakan readable stacked list tanpa hover dependency.
+- [ ] Credential links dan preview images accessible.
+- [ ] Certificate content berasal dari typed user-provided data, bukan inferensi dari CV.
 
 ### Contact
 
@@ -1130,6 +1251,14 @@ EXPERIENCE
 
                        ↓
 
+CERTIFICATES
+└── Custom Interactive Certificate Gallery
+    ├── Certificate Selector
+    ├── Active Document Preview
+    └── Optional Credential Link
+
+                       ↓
+
 SEND MESSAGE
 ├── Particles Background
 └── Form Card
@@ -1155,6 +1284,7 @@ Keputusan utama yang sudah dikunci:
 - Skills menggunakan custom Interactive Tech Stack Grid.
 - Projects menggunakan Bento Grid dengan Border Beam untuk featured project.
 - Experience menggunakan custom Scroll Timeline.
+- Certificates menggunakan custom Interactive Certificate Gallery dengan Astro-first progressive enhancement.
 - Send Message menggunakan Particles + Border Beam form card.
 - Contact Form menggunakan client-side Web3Forms submission pada production Vercel `*.vercel.app`.
 - Contact tidak membutuhkan custom sending domain atau custom Astro email backend sebagai target architecture.

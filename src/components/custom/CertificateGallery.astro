@@ -1,0 +1,655 @@
+---
+import type { Certificate } from "@/data/certificates";
+
+interface Props {
+  certificates: Certificate[];
+}
+
+const { certificates } = Astro.props;
+
+const formatItemNumber = (index: number) => String(index + 1).padStart(2, "0");
+const getImageAlt = (certificate: Certificate) =>
+  `${certificate.title} certificate issued by ${certificate.issuer}`;
+---
+
+<certificate-gallery class="certificate-gallery">
+  <div class="certificate-gallery__desktop">
+    <ol class="certificate-gallery__selectors" role="list">
+      {
+        certificates.map((certificate, index) => (
+          <li
+            class="certificate-gallery__selector-item"
+            data-certificate-item
+            data-certificate-id={certificate.id}
+          >
+            <button
+              type="button"
+              class="certificate-gallery__selector"
+              data-certificate-selector
+              data-certificate-id={certificate.id}
+              aria-pressed="false"
+              aria-label={`Show ${certificate.title} certificate preview`}
+            >
+              <span class="certificate-gallery__number" aria-hidden="true">
+                {formatItemNumber(index)}
+              </span>
+
+              <span class="certificate-gallery__copy">
+                <span class="certificate-gallery__title">{certificate.title}</span>
+                <span class="certificate-gallery__meta">
+                  {certificate.issuer}
+                  <span aria-hidden="true"> · </span>
+                  {certificate.issuedAt}
+                </span>
+              </span>
+            </button>
+
+            {certificate.credentialUrl && (
+              <a
+                class="certificate-gallery__credential-link"
+                href={certificate.credentialUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-certificate-credential
+                aria-label={`View ${certificate.title} credential (opens in a new tab)`}
+              >
+                <span>View Credential</span>
+                <span class="certificate-gallery__arrow" aria-hidden="true">↗</span>
+              </a>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="certificate-gallery__preview-stage">
+      {
+        certificates.map((certificate) => (
+          <figure
+            class="certificate-gallery__preview"
+            data-certificate-preview
+            data-certificate-id={certificate.id}
+            aria-hidden="true"
+          >
+            {certificate.image ? (
+              <img
+                src={certificate.image.src}
+                width={certificate.image.width}
+                height={certificate.image.height}
+                alt={getImageAlt(certificate)}
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              <div class="certificate-gallery__fallback">
+                <p class="certificate-gallery__fallback-label">
+                  Certificate preview unavailable
+                </p>
+                <p class="certificate-gallery__fallback-title">
+                  {certificate.title}
+                </p>
+                <p class="certificate-gallery__fallback-meta">
+                  {certificate.issuer}
+                </p>
+              </div>
+            )}
+          </figure>
+        ))
+      }
+    </div>
+  </div>
+
+  <ol class="certificate-gallery__mobile" role="list">
+    {
+      certificates.map((certificate, index) => (
+        <li class="certificate-gallery__mobile-item">
+          <article aria-labelledby={`certificate-${certificate.id}`}>
+            <header class="certificate-gallery__mobile-header">
+              <p class="certificate-gallery__number" aria-hidden="true">
+                {formatItemNumber(index)}
+              </p>
+              <h3
+                id={`certificate-${certificate.id}`}
+                class="certificate-gallery__mobile-title"
+              >
+                {certificate.title}
+              </h3>
+              <p class="certificate-gallery__meta">
+                {certificate.issuer}
+                <span aria-hidden="true"> · </span>
+                {certificate.issuedAt}
+              </p>
+            </header>
+
+            <figure class="certificate-gallery__mobile-preview">
+              {certificate.image ? (
+                <img
+                  src={certificate.image.src}
+                  width={certificate.image.width}
+                  height={certificate.image.height}
+                  alt={getImageAlt(certificate)}
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <div class="certificate-gallery__fallback">
+                  <p class="certificate-gallery__fallback-label">
+                    Certificate preview unavailable
+                  </p>
+                  <p class="certificate-gallery__fallback-title">
+                    {certificate.title}
+                  </p>
+                  <p class="certificate-gallery__fallback-meta">
+                    {certificate.issuer}
+                  </p>
+                </div>
+              )}
+            </figure>
+
+            {certificate.credentialUrl && (
+              <a
+                class="certificate-gallery__credential-link certificate-gallery__credential-link--mobile"
+                href={certificate.credentialUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`View ${certificate.title} credential (opens in a new tab)`}
+              >
+                <span>View Credential</span>
+                <span class="certificate-gallery__arrow" aria-hidden="true">↗</span>
+              </a>
+            )}
+          </article>
+        </li>
+      ))
+    }
+  </ol>
+</certificate-gallery>
+
+<script>
+  class CertificateGalleryElement extends HTMLElement {
+    private items: HTMLElement[] = [];
+    private selectors: HTMLButtonElement[] = [];
+    private previews: HTMLElement[] = [];
+    private credentialLinks: HTMLAnchorElement[] = [];
+    private suppressPointerPreviewUntilLeave = false;
+
+    connectedCallback() {
+      this.items = Array.from(
+        this.querySelectorAll<HTMLElement>("[data-certificate-item]"),
+      );
+      this.selectors = Array.from(
+        this.querySelectorAll<HTMLButtonElement>("[data-certificate-selector]"),
+      );
+      this.previews = Array.from(
+        this.querySelectorAll<HTMLElement>("[data-certificate-preview]"),
+      );
+      this.credentialLinks = Array.from(
+        this.querySelectorAll<HTMLAnchorElement>("[data-certificate-credential]"),
+      );
+
+      if (this.selectors.length === 0 || this.previews.length === 0) return;
+
+      this.classList.add("is-enhanced");
+      this.suppressPointerPreviewUntilLeave = false;
+      this.clearPreview();
+
+      this.items.forEach((item) => {
+        item.addEventListener("pointerenter", this.handlePointerEnter);
+        item.addEventListener("pointerleave", this.handlePointerLeave);
+      });
+
+      this.selectors.forEach((selector) => {
+        selector.addEventListener("focus", this.handleSelectorFocus);
+        selector.addEventListener("blur", this.handleSelectorBlur);
+        selector.addEventListener("click", this.handleSelectorClick);
+      });
+
+      this.credentialLinks.forEach((link) => {
+        link.addEventListener("click", this.handleCredentialClick);
+      });
+
+      document.addEventListener("visibilitychange", this.handleVisibilityChange);
+    }
+
+    disconnectedCallback() {
+      this.items.forEach((item) => {
+        item.removeEventListener("pointerenter", this.handlePointerEnter);
+        item.removeEventListener("pointerleave", this.handlePointerLeave);
+      });
+
+      this.selectors.forEach((selector) => {
+        selector.removeEventListener("focus", this.handleSelectorFocus);
+        selector.removeEventListener("blur", this.handleSelectorBlur);
+        selector.removeEventListener("click", this.handleSelectorClick);
+      });
+
+      this.credentialLinks.forEach((link) => {
+        link.removeEventListener("click", this.handleCredentialClick);
+      });
+
+      document.removeEventListener(
+        "visibilitychange",
+        this.handleVisibilityChange,
+      );
+      this.classList.remove("is-enhanced");
+    }
+
+    private handlePointerEnter = (event: Event) => {
+      if (this.suppressPointerPreviewUntilLeave) return;
+
+      const item = event.currentTarget;
+      if (!(item instanceof HTMLElement)) return;
+
+      const certificateId = item.dataset.certificateId;
+      if (certificateId) this.showPreview(certificateId);
+    };
+
+    private handlePointerLeave = (event: Event) => {
+      const item = event.currentTarget;
+      if (!(item instanceof HTMLElement)) return;
+
+      this.suppressPointerPreviewUntilLeave = false;
+
+      const focusedSelector = item.querySelector<HTMLButtonElement>(
+        "[data-certificate-selector]:focus",
+      );
+
+      if (!focusedSelector) this.clearPreview();
+    };
+
+    private handleSelectorFocus = (event: FocusEvent) => {
+      const selector = event.currentTarget;
+      if (!(selector instanceof HTMLButtonElement)) return;
+
+      this.suppressPointerPreviewUntilLeave = false;
+
+      const certificateId = selector.dataset.certificateId;
+      if (certificateId) this.showPreview(certificateId);
+    };
+
+    private handleSelectorBlur = (event: FocusEvent) => {
+      const selector = event.currentTarget;
+      if (!(selector instanceof HTMLButtonElement)) return;
+
+      const item = selector.closest<HTMLElement>("[data-certificate-item]");
+      if (!item?.matches(":hover")) this.clearPreview();
+    };
+
+    private handleSelectorClick = (event: Event) => {
+      const selector = event.currentTarget;
+      if (!(selector instanceof HTMLButtonElement)) return;
+
+      this.suppressPointerPreviewUntilLeave = false;
+
+      const certificateId = selector.dataset.certificateId;
+      if (certificateId) this.showPreview(certificateId);
+    };
+
+    private handleCredentialClick = () => {
+      this.clearPreview(true);
+    };
+
+    private handleVisibilityChange = () => {
+      if (document.hidden) this.clearPreview(true);
+    };
+
+    private showPreview(certificateId: string) {
+      const hasMatchingPreview = this.previews.some(
+        (preview) => preview.dataset.certificateId === certificateId,
+      );
+
+      if (!hasMatchingPreview) return;
+
+      this.dataset.previewActive = certificateId;
+
+      this.selectors.forEach((selector) => {
+        const isActive = selector.dataset.certificateId === certificateId;
+        selector.setAttribute("aria-pressed", String(isActive));
+        selector.closest("[data-certificate-item]")?.classList.toggle(
+          "is-active",
+          isActive,
+        );
+      });
+
+      this.previews.forEach((preview) => {
+        const isActive = preview.dataset.certificateId === certificateId;
+        preview.classList.toggle("is-active", isActive);
+
+        if (isActive) {
+          preview.removeAttribute("aria-hidden");
+        } else {
+          preview.setAttribute("aria-hidden", "true");
+        }
+      });
+    }
+
+    private clearPreview(suppressPointerUntilLeave = false) {
+      if (suppressPointerUntilLeave) {
+        this.suppressPointerPreviewUntilLeave = true;
+      }
+
+      delete this.dataset.previewActive;
+
+      this.selectors.forEach((selector) => {
+        selector.setAttribute("aria-pressed", "false");
+        selector.closest("[data-certificate-item]")?.classList.remove(
+          "is-active",
+        );
+      });
+
+      this.previews.forEach((preview) => {
+        preview.classList.remove("is-active");
+        preview.setAttribute("aria-hidden", "true");
+      });
+    }
+  }
+
+  if (!customElements.get("certificate-gallery")) {
+    customElements.define("certificate-gallery", CertificateGalleryElement);
+  }
+</script>
+
+<style>
+  .certificate-gallery {
+    --certificate-divider-duration: 350ms;
+    --certificate-preview-duration-in: 350ms;
+    --certificate-preview-duration-out: 300ms;
+
+    display: block;
+    min-width: 0;
+  }
+
+  .certificate-gallery__desktop {
+    display: none;
+  }
+
+  .certificate-gallery__selectors,
+  .certificate-gallery__mobile {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .certificate-gallery__mobile {
+    border-top: 1px solid var(--border);
+  }
+
+  .certificate-gallery__mobile-item {
+    min-width: 0;
+    padding-block: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .certificate-gallery__mobile-header {
+    display: grid;
+    min-width: 0;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .certificate-gallery__number {
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.12em;
+    line-height: 1.5;
+  }
+
+  .certificate-gallery__mobile-title {
+    overflow-wrap: anywhere;
+    font-size: clamp(1.35rem, 1.15rem + 1vw, 1.75rem);
+  }
+
+  .certificate-gallery__meta {
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .certificate-gallery__mobile-preview {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-muted);
+    margin-bottom: 1rem;
+  }
+
+  .certificate-gallery__mobile-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .certificate-gallery__fallback {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-content: center;
+    gap: 0.6rem;
+    padding: clamp(1.5rem, 5vw, 3rem);
+    text-align: center;
+  }
+
+  .certificate-gallery__fallback-label {
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    line-height: 1.5;
+    text-transform: uppercase;
+  }
+
+  .certificate-gallery__fallback-title {
+    overflow-wrap: anywhere;
+    color: var(--foreground);
+    font-size: clamp(1.25rem, 1.05rem + 1vw, 1.75rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .certificate-gallery__fallback-meta {
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+  }
+
+  .certificate-gallery__credential-link {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--foreground);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.3;
+    text-decoration: none;
+  }
+
+  .certificate-gallery__arrow {
+    transition: transform var(--duration-fast) var(--ease-standard);
+  }
+
+  .certificate-gallery__credential-link:is(:hover, :focus-visible)
+    .certificate-gallery__arrow {
+    transform: translate(0.2rem, -0.2rem);
+  }
+
+  .certificate-gallery__credential-link--mobile {
+    margin-top: 0.25rem;
+  }
+
+  @media (min-width: 64rem) {
+    .certificate-gallery.is-enhanced .certificate-gallery__mobile {
+      display: none;
+    }
+
+    .certificate-gallery.is-enhanced .certificate-gallery__desktop {
+      position: relative;
+      display: block;
+      container-type: inline-size;
+    }
+
+    .certificate-gallery__selectors {
+      width: min(58%, 48rem);
+      min-width: 0;
+    }
+
+    .certificate-gallery__selector-item {
+      position: relative;
+      min-width: 0;
+      padding-block: 1.5rem;
+      transition: opacity var(--duration-normal) var(--ease-standard);
+    }
+
+    .certificate-gallery__selector-item::after {
+      position: absolute;
+      right: auto;
+      bottom: 0;
+      left: 0;
+      width: 100cqi;
+      height: 1px;
+      background: var(--border);
+      content: "";
+      transition:
+        width var(--certificate-divider-duration) var(--ease-standard),
+        background-color var(--certificate-divider-duration)
+          var(--ease-standard);
+    }
+
+    .certificate-gallery__selector {
+      display: grid;
+      width: 100%;
+      min-width: 0;
+      min-height: 4.5rem;
+      grid-template-columns: 2.5rem minmax(0, 1fr);
+      gap: 1rem;
+      align-items: start;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      text-align: left;
+      transition:
+        color var(--duration-normal) var(--ease-standard),
+        transform var(--duration-normal) var(--ease-standard);
+    }
+
+    .certificate-gallery__copy {
+      display: grid;
+      min-width: 0;
+      gap: 0.5rem;
+    }
+
+    .certificate-gallery__title {
+      overflow-wrap: anywhere;
+      font-size: clamp(1.25rem, 1.05rem + 0.65vw, 1.65rem);
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      transition: font-weight var(--duration-fast) var(--ease-standard);
+    }
+
+    .certificate-gallery__selector-item.is-active::after {
+      width: 100%;
+      background: var(--border-strong);
+    }
+
+    .certificate-gallery__selector-item.is-active
+      .certificate-gallery__selector {
+      color: var(--foreground);
+      transform: translateX(0.25rem);
+    }
+
+    .certificate-gallery__selector-item.is-active .certificate-gallery__title {
+      font-weight: 650;
+    }
+
+    .certificate-gallery[data-preview-active]
+      .certificate-gallery__selector-item:not(.is-active) {
+      opacity: 0.86;
+    }
+
+    .certificate-gallery__credential-link {
+      margin-top: 0.5rem;
+      margin-left: 3.5rem;
+    }
+
+    .certificate-gallery__preview-stage {
+      position: absolute;
+      top: -3rem;
+      right: 0;
+      width: clamp(22rem, 36vw, 30rem);
+      max-width: 40%;
+      min-width: 0;
+      pointer-events: none;
+    }
+
+    .certificate-gallery__preview {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100%;
+      min-width: 0;
+      margin: 0;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: scale(0.985);
+      transition:
+        opacity var(--certificate-preview-duration-out) var(--ease-standard),
+        transform var(--certificate-preview-duration-out) var(--ease-standard),
+        visibility 0s linear var(--certificate-preview-duration-out);
+    }
+
+    .certificate-gallery__preview.is-active {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1);
+      transition:
+        opacity var(--certificate-preview-duration-in) var(--ease-standard),
+        transform var(--certificate-preview-duration-in) var(--ease-standard),
+        visibility 0s linear 0s;
+    }
+
+    .certificate-gallery__preview img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      object-fit: contain;
+    }
+
+    .certificate-gallery__preview .certificate-gallery__fallback {
+      aspect-ratio: 4 / 3;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface-muted);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .certificate-gallery__selector-item,
+    .certificate-gallery__selector-item::after,
+    .certificate-gallery__selector,
+    .certificate-gallery__title,
+    .certificate-gallery__preview,
+    .certificate-gallery__arrow {
+      transition: none;
+    }
+
+    .certificate-gallery__selector-item.is-active
+      .certificate-gallery__selector,
+    .certificate-gallery__preview,
+    .certificate-gallery__credential-link:is(:hover, :focus-visible)
+      .certificate-gallery__arrow {
+      transform: none;
+    }
+  }
+</style>

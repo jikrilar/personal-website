@@ -1,11 +1,18 @@
-import type { ContactPayload, ContactResponse } from "@/lib/contact/schema";
+import type {
+  ContactResponse,
+  ContactSubmissionPayload,
+} from "@/lib/contact/schema";
 
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
+
 const GENERIC_ERROR_MESSAGE =
   "Your message could not be sent. Please try again later.";
 
+const SUCCESS_MESSAGE = "Message sent successfully.";
+
 interface Web3FormsResponse {
   success: boolean;
+  message?: string;
 }
 
 export class ContactSubmissionError extends Error {
@@ -16,13 +23,20 @@ export class ContactSubmissionError extends Error {
 }
 
 function isWeb3FormsResponse(value: unknown): value is Web3FormsResponse {
-  if (!value || typeof value !== "object") return false;
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
 
-  return typeof (value as Partial<Web3FormsResponse>).success === "boolean";
+  const response = value as Partial<Web3FormsResponse>;
+
+  return (
+    typeof response.success === "boolean" &&
+    (response.message === undefined || typeof response.message === "string")
+  );
 }
 
 export async function submitContactMessage(
-  payload: ContactPayload,
+  payload: ContactSubmissionPayload,
   signal?: AbortSignal,
 ): Promise<ContactResponse> {
   const accessKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY?.trim();
@@ -59,22 +73,14 @@ export async function submitContactMessage(
 
   const body: unknown = await response.json().catch(() => null);
 
-<<<<<<< Updated upstream
-  if (!response.ok || !isContactResponse(body) || !body.success) {
-    const message =
-      isContactResponse(body) && body.message
-        ? body.message
-        : "Message delivery is not configured yet. Please try again later.";
-
-    throw new ContactSubmissionError(message);
-=======
   if (!response.ok || !isWeb3FormsResponse(body) || body.success !== true) {
     throw new ContactSubmissionError(GENERIC_ERROR_MESSAGE);
->>>>>>> Stashed changes
   }
 
   return {
     success: true,
-    message: "Message sent successfully.",
+    message:
+      body.message?.trim() ||
+      SUCCESS_MESSAGE,
   };
 }

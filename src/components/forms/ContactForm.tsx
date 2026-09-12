@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState, type SubmitEvent } from "react";
+
 import {
   CONTACT_LIMITS,
   normalizeContactPayload,
   validateContactPayload,
   type ContactFieldErrors,
   type ContactPayload,
+  type ContactSubmissionPayload,
 } from "@/lib/contact/schema";
+
 import {
   ContactSubmissionError,
   submitContactMessage,
 } from "@/lib/contact/submit-contact";
+
 import "./ContactForm.css";
 
 type SubmissionStatus = "idle" | "loading" | "success" | "error";
@@ -20,29 +24,39 @@ const EMPTY_FORM: ContactPayload = {
   message: "",
 };
 
-const FIELD_ORDER: Array<keyof ContactPayload> = ["name", "email", "message"];
+const FIELD_ORDER: Array<keyof ContactPayload> = [
+  "name",
+  "email",
+  "message",
+];
 
 export default function ContactForm() {
   const [values, setValues] = useState<ContactPayload>(EMPTY_FORM);
   const [fieldErrors, setFieldErrors] = useState<ContactFieldErrors>({});
   const [status, setStatus] = useState<SubmissionStatus>("idle");
   const [statusMessage, setStatusMessage] = useState("");
-<<<<<<< Updated upstream
-=======
   const [botcheck, setBotcheck] = useState(false);
->>>>>>> Stashed changes
+
   const submittingRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    return () => abortControllerRef.current?.abort();
+    return () => {
+      abortControllerRef.current?.abort();
+    };
   }, []);
 
   function updateField(field: keyof ContactPayload, value: string) {
-    setValues((current) => ({ ...current, [field]: value }));
+    setValues((current) => ({
+      ...current,
+      [field]: value,
+    }));
 
     if (fieldErrors[field]) {
-      setFieldErrors((current) => ({ ...current, [field]: undefined }));
+      setFieldErrors((current) => ({
+        ...current,
+        [field]: undefined,
+      }));
     }
 
     if (status === "error" || status === "success") {
@@ -56,9 +70,10 @@ export default function ContactForm() {
     errors: ContactFieldErrors,
   ) {
     const firstInvalidField = FIELD_ORDER.find((field) => errors[field]);
-    const control = firstInvalidField
-      ? form.elements.namedItem(firstInvalidField)
-      : null;
+
+    if (!firstInvalidField) return;
+
+    const control = form.elements.namedItem(firstInvalidField);
 
     if (control instanceof HTMLElement) {
       control.focus();
@@ -84,32 +99,30 @@ export default function ContactForm() {
 
     submittingRef.current = true;
     abortControllerRef.current = new AbortController();
+
     setFieldErrors({});
     setStatus("loading");
     setStatusMessage("Sending your message...");
 
     try {
-<<<<<<< Updated upstream
-=======
       const submission: ContactSubmissionPayload = {
         ...payload,
         botcheck,
       };
->>>>>>> Stashed changes
+
       const response = await submitContactMessage(
-        payload,
+        submission,
         abortControllerRef.current.signal,
       );
 
       setValues(EMPTY_FORM);
-<<<<<<< Updated upstream
-=======
       setBotcheck(false);
->>>>>>> Stashed changes
       setStatus("success");
       setStatusMessage(response.message);
     } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
 
       setStatus("error");
       setStatusMessage(
@@ -130,8 +143,6 @@ export default function ContactForm() {
       onSubmit={handleSubmit}
       aria-busy={status === "loading"}
     >
-<<<<<<< Updated upstream
-=======
       <div hidden aria-hidden="true">
         <label htmlFor="contact-botcheck">Leave this field blank</label>
         <input
@@ -144,7 +155,6 @@ export default function ContactForm() {
         />
       </div>
 
->>>>>>> Stashed changes
       <div className="contact-form__field">
         <label htmlFor="contact-name">Name</label>
         <input
@@ -158,9 +168,12 @@ export default function ContactForm() {
           placeholder="Your name"
           value={values.name}
           aria-invalid={Boolean(fieldErrors.name)}
-          aria-describedby={fieldErrors.name ? "contact-name-error" : undefined}
+          aria-describedby={
+            fieldErrors.name ? "contact-name-error" : undefined
+          }
           onChange={(event) => updateField("name", event.target.value)}
         />
+
         {fieldErrors.name && (
           <p id="contact-name-error" className="contact-form__field-error">
             {fieldErrors.name}
@@ -175,15 +188,18 @@ export default function ContactForm() {
           name="email"
           type="email"
           autoComplete="email"
+          inputMode="email"
           required
           maxLength={CONTACT_LIMITS.email.max}
-          inputMode="email"
           placeholder="you@example.com"
           value={values.email}
           aria-invalid={Boolean(fieldErrors.email)}
-          aria-describedby={fieldErrors.email ? "contact-email-error" : undefined}
+          aria-describedby={
+            fieldErrors.email ? "contact-email-error" : undefined
+          }
           onChange={(event) => updateField("email", event.target.value)}
         />
+
         {fieldErrors.email && (
           <p id="contact-email-error" className="contact-form__field-error">
             {fieldErrors.email}
@@ -203,9 +219,12 @@ export default function ContactForm() {
           placeholder="Tell me what you would like to discuss."
           value={values.message}
           aria-invalid={Boolean(fieldErrors.message)}
-          aria-describedby={fieldErrors.message ? "contact-message-error" : undefined}
+          aria-describedby={
+            fieldErrors.message ? "contact-message-error" : undefined
+          }
           onChange={(event) => updateField("message", event.target.value)}
         />
+
         {fieldErrors.message && (
           <p id="contact-message-error" className="contact-form__field-error">
             {fieldErrors.message}
