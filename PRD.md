@@ -214,6 +214,13 @@ Aturan penggunaan:
 - MCP tidak mengubah arsitektur aplikasi; komponen React tetap diintegrasikan melalui Astro React Islands hanya jika hydration memang diperlukan.
 - Komponen yang tidak membutuhkan client-side interaction harus diusahakan tetap statis/server-rendered untuk menjaga performa.
 
+### 7.6 Deployment and Contact Provider
+
+- Production deployment menggunakan Vercel dengan default domain `*.vercel.app` selama custom domain belum tersedia.
+- Contact Form menggunakan Web3Forms sebagai provider form submission.
+- Contact submission dilakukan dari client ke Web3Forms sehingga tidak membutuhkan custom Astro email backend sebagai target architecture.
+- Web3Forms dipilih agar Contact Form tetap dapat mengirim pesan pada deployment Vercel tanpa custom sender domain.
+
 ---
 
 ## 8. Information Architecture
@@ -736,9 +743,36 @@ Minimum:
 
 ### Submission
 
-Mechanism pengiriman pesan dapat menggunakan API/serverless endpoint atau email service yang dipilih saat development.
+Provider pengiriman pesan adalah **Web3Forms**.
 
-PRD tidak mengunci provider tertentu.
+Target data flow:
+
+```text
+Contact Form
+    ↓
+client validation
+    ↓
+client-side Web3Forms submission
+    ↓
+provider response
+    ↓
+portfolio owner's email destination
+```
+
+Requirements:
+
+- Form mengirim `name`, `email`, dan `message` ke Web3Forms.
+- Email pengunjung tetap dikirim sebagai contact/reply information.
+- Loading, success, error, dan validation state yang sudah ditentukan tetap dipertahankan.
+- Success hanya boleh ditampilkan setelah Web3Forms mengonfirmasi submission berhasil; tidak boleh ada fake success.
+- Jika provider atau network gagal, input pengunjung tetap dipertahankan agar submission dapat dicoba kembali.
+- Gunakan spam protection yang sesuai dengan Web3Forms tanpa redesign atau CAPTCHA berat secara default.
+
+### Production Deployment
+
+- Target production adalah Vercel menggunakan default `*.vercel.app` domain.
+- Portfolio saat ini tidak memiliki custom domain, sehingga tidak mengandalkan sender-domain verification untuk Contact Form.
+- Web3Forms access key dikonfigurasi melalui Astro public environment variable tanpa menaruh value aktual di dokumentasi.
 
 ### Border Beam
 
@@ -1136,6 +1170,9 @@ Website versi pertama dianggap memenuhi PRD jika:
 - [ ] Contact form berada dalam card dengan Border Beam.
 - [ ] Form memiliki validation state.
 - [ ] Form memiliki success dan error feedback.
+- [ ] Contact Form mengirim langsung ke Web3Forms dari client.
+- [ ] Success hanya muncul setelah provider mengonfirmasi submission berhasil.
+- [ ] Production submission bekerja pada deployment Vercel `*.vercel.app`.
 
 ### Footer
 
@@ -1249,6 +1286,8 @@ Keputusan utama yang sudah dikunci:
 - Experience menggunakan custom Scroll Timeline.
 - Certificates menggunakan custom Interactive Certificate Gallery dengan Astro-first progressive enhancement.
 - Send Message menggunakan Particles + Border Beam form card.
+- Contact Form menggunakan client-side Web3Forms submission pada production Vercel `*.vercel.app`.
+- Contact tidak membutuhkan custom sending domain atau custom Astro email backend sebagai target architecture.
 - Shine Border tidak digunakan karena efek visualnya terlalu colorful untuk design direction website.
 - Intro menggunakan Morphing Text selama sekitar 3 detik.
 - Intro merupakan overlay animation, bukan artificial page-loading delay.

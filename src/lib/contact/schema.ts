@@ -5,8 +5,7 @@ export interface ContactPayload {
 }
 
 export interface ContactSubmissionPayload extends ContactPayload {
-  website: string;
-  submissionId: string;
+  botcheck: boolean;
 }
 
 export interface ContactResponse {
@@ -27,10 +26,10 @@ export const CONTACT_LIMITS = {
 } as const;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const SUBMISSION_ID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-export function normalizeContactPayload(payload: ContactPayload): ContactPayload {
+export function normalizeContactPayload(
+  payload: ContactPayload,
+): ContactPayload {
   return {
     name: payload.name.trim(),
     email: payload.email.trim().toLowerCase(),
@@ -38,7 +37,9 @@ export function normalizeContactPayload(payload: ContactPayload): ContactPayload
   };
 }
 
-export function validateContactPayload(payload: ContactPayload): ContactFieldErrors {
+export function validateContactPayload(
+  payload: ContactPayload,
+): ContactFieldErrors {
   const errors: ContactFieldErrors = {};
 
   if (payload.name.length < CONTACT_LIMITS.name.min) {
@@ -66,24 +67,27 @@ export function validateContactPayload(payload: ContactPayload): ContactFieldErr
 }
 
 export function isValidEmailAddress(value: string): boolean {
-  return value.length <= CONTACT_LIMITS.email.max && EMAIL_PATTERN.test(value);
+  return (
+    value.length <= CONTACT_LIMITS.email.max &&
+    EMAIL_PATTERN.test(value)
+  );
 }
 
-export function parseContactSubmission(value: unknown): ContactPayloadParseResult {
+export function parseContactSubmission(
+  value: unknown,
+): ContactPayloadParseResult {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return { success: false };
   }
 
   const candidate = value as Record<string, unknown>;
-  const website = candidate.website ?? "";
-  const submissionId = candidate.submissionId ?? crypto.randomUUID();
+  const botcheck = candidate.botcheck ?? false;
 
   if (
     typeof candidate.name !== "string" ||
     typeof candidate.email !== "string" ||
     typeof candidate.message !== "string" ||
-    typeof website !== "string" ||
-    typeof submissionId !== "string"
+    typeof botcheck !== "boolean"
   ) {
     return { success: false };
   }
@@ -94,11 +98,7 @@ export function parseContactSubmission(value: unknown): ContactPayloadParseResul
     message: candidate.message,
   });
 
-  if (
-    Object.keys(validateContactPayload(payload)).length > 0 ||
-    website.length > 200 ||
-    !SUBMISSION_ID_PATTERN.test(submissionId)
-  ) {
+  if (Object.keys(validateContactPayload(payload)).length > 0) {
     return { success: false };
   }
 
@@ -106,8 +106,7 @@ export function parseContactSubmission(value: unknown): ContactPayloadParseResul
     success: true,
     data: {
       ...payload,
-      website: website.trim(),
-      submissionId,
+      botcheck,
     },
   };
 }

@@ -968,7 +968,7 @@ Send Message Section
 
 ## Goal
 
-Membuat contact section dengan Particles background dan form card menggunakan monochrome Border Beam.
+Membuat contact section dengan Particles background dan form card menggunakan monochrome Border Beam, lalu menghubungkan existing form ke Web3Forms melalui client-side submission.
 
 ## Approved Components
 
@@ -1016,11 +1016,12 @@ Client:
 - [ ] Valid email.
 - [ ] Message minimum sensible length.
 
-Server:
+Provider request:
 
-- [ ] Validate ulang payload.
-- [ ] Batasi payload length.
-- [ ] Jangan mempercayai client validation.
+- [ ] Batasi dan normalisasi payload sebelum submission.
+- [ ] Kirim hanya field Contact yang diperlukan ke Web3Forms.
+- [ ] Perlakukan provider response sebagai untrusted input dan validasi success state.
+- [ ] Jangan menampilkan success sebelum Web3Forms mengonfirmasi submission berhasil.
 
 ### Submission Architecture
 
@@ -1031,12 +1032,20 @@ ContactForm
     ↓
 submitContactMessage()
     ↓
-API endpoint/provider adapter
+Web3Forms API
 ```
 
-- [ ] Jangan hardcode provider logic ke UI.
-- [ ] Jangan expose secret/API key ke browser.
-- [ ] Provider dapat diganti.
+- [ ] Submit dari client menggunakan provider helper/adapter yang fokus.
+- [ ] Jangan menyebarkan provider logic ke presentation markup.
+- [ ] Pertahankan provider boundary agar UI tidak perlu didesain ulang jika integration berubah.
+- [ ] Handle network failure, provider rejection, dan malformed provider response.
+
+### Web3Forms Access Key
+
+- [ ] Gunakan `PUBLIC_WEB3FORMS_ACCESS_KEY` melalui Astro public environment convention.
+- [ ] Jangan hardcode actual access key di source atau documentation.
+- [ ] Jangan mendokumentasikan access key sebagai private server secret karena key digunakan dari browser.
+- [ ] Konfigurasikan access key pada local environment dan Vercel project settings.
 
 ### UI States
 
@@ -1050,8 +1059,9 @@ API endpoint/provider adapter
 
 Implement ringan jika diperlukan:
 
-- [ ] Honeypot optional.
-- [ ] Rate limiting jika provider/platform mendukung.
+- [ ] Pertahankan/tambahkan honeypot yang tidak mengganggu keyboard atau screen reader.
+- [ ] Gunakan Web3Forms spam protection yang sesuai dan telah diverifikasi dari provider documentation.
+- [ ] Gunakan provider-side throttling/rate protection jika tersedia.
 
 Jangan menambahkan CAPTCHA berat tanpa kebutuhan.
 
@@ -1059,6 +1069,18 @@ Jangan menambahkan CAPTCHA berat tanpa kebutuhan.
 
 - [ ] Disable Particles.
 - [ ] Border Beam dapat menjadi static border.
+
+### Resend and Backend Migration Cleanup
+
+Lakukan cleanup hanya setelah Web3Forms berhasil diverifikasi pada production Vercel:
+
+- [ ] Hapus obsolete Resend SDK/dependency dan server email service.
+- [ ] Hapus environment/schema lama: `RESEND_API_KEY`, `CONTACT_FROM_EMAIL`, `CONTACT_FROM_NAME`, dan `CONTACT_TO_EMAIL` jika tidak dipakai fitur lain.
+- [ ] Verifikasi `/api/contact` sudah tidak digunakan sebelum menghapus route.
+- [ ] Audit Astro/Vercel server adapter; hapus hanya jika tidak ada on-demand route atau fitur server lain yang masih membutuhkannya.
+- [ ] Pastikan cleanup tidak dilakukan sebelum real Web3Forms success/error flow lolos verification.
+
+Task dokumentasi ini tidak menjalankan cleanup implementation tersebut.
 
 ## Acceptance Criteria
 
@@ -1068,8 +1090,13 @@ Jangan menambahkan CAPTCHA berat tanpa kebutuhan.
 - [ ] Validation bekerja.
 - [ ] Error state bekerja.
 - [ ] Success state bekerja.
-- [ ] Secret tidak terekspos.
+- [ ] Success hanya muncul setelah Web3Forms mengonfirmasi submission.
+- [ ] Input tetap tersedia ketika submission gagal.
+- [ ] `PUBLIC_WEB3FORMS_ACCESS_KEY` dikonfigurasi tanpa actual key di source/documentation.
+- [ ] Spam protection bekerja tanpa merusak accessibility.
 - [ ] Provider decoupled dari UI.
+- [ ] Production submission bekerja pada Vercel `*.vercel.app`.
+- [ ] Obsolete Resend/backend implementation dihapus hanya setelah migration verification.
 
 ---
 
@@ -1383,9 +1410,12 @@ Menyiapkan project untuk production deployment.
 
 ### Contact
 
-- [ ] Production contact endpoint/provider bekerja.
-- [ ] Environment variables tersedia.
-- [ ] Error logging reasonable.
+- [ ] Web3Forms production submission bekerja dari Vercel `*.vercel.app`.
+- [ ] `PUBLIC_WEB3FORMS_ACCESS_KEY` tersedia di Vercel environment settings.
+- [ ] Loading, success, provider failure, dan network failure sudah diverifikasi.
+- [ ] Success bukan fake response dan hanya mengikuti confirmed Web3Forms success.
+- [ ] Obsolete Resend implementation dan `/api/contact` sudah diaudit setelah migration berhasil.
+- [ ] Astro/Vercel server adapter requirement sudah dievaluasi setelah backend cleanup.
 
 ### SEO
 
@@ -1407,7 +1437,7 @@ Menyiapkan project untuk production deployment.
 - [ ] Production build sukses.
 - [ ] No TypeScript error.
 - [ ] No console error.
-- [ ] No secrets exposed.
+- [ ] No actual access key atau private secret committed.
 - [ ] Site siap deploy.
 
 ---
