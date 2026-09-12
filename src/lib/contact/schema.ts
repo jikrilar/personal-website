@@ -15,10 +15,6 @@ export interface ContactResponse {
 
 export type ContactFieldErrors = Partial<Record<keyof ContactPayload, string>>;
 
-export type ContactPayloadParseResult =
-  | { success: true; data: ContactSubmissionPayload }
-  | { success: false };
-
 export const CONTACT_LIMITS = {
   name: { min: 2, max: 120 },
   email: { max: 254 },
@@ -71,42 +67,4 @@ export function isValidEmailAddress(value: string): boolean {
     value.length <= CONTACT_LIMITS.email.max &&
     EMAIL_PATTERN.test(value)
   );
-}
-
-export function parseContactSubmission(
-  value: unknown,
-): ContactPayloadParseResult {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return { success: false };
-  }
-
-  const candidate = value as Record<string, unknown>;
-  const botcheck = candidate.botcheck ?? false;
-
-  if (
-    typeof candidate.name !== "string" ||
-    typeof candidate.email !== "string" ||
-    typeof candidate.message !== "string" ||
-    typeof botcheck !== "boolean"
-  ) {
-    return { success: false };
-  }
-
-  const payload = normalizeContactPayload({
-    name: candidate.name,
-    email: candidate.email,
-    message: candidate.message,
-  });
-
-  if (Object.keys(validateContactPayload(payload)).length > 0) {
-    return { success: false };
-  }
-
-  return {
-    success: true,
-    data: {
-      ...payload,
-      botcheck,
-    },
-  };
 }
